@@ -5,18 +5,6 @@ import { auth, db } from ".././firebase";
 import { doc, setDoc, addDoc, collection } from "firebase/firestore"; 
 
 
-/*import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { firebaseAuth, firebaseApp } from '../firebase';
-import auth from '@react-native-firebase/auth';
-import { getAuth } from "firebase/auth";
-*/
-
-/*
-
-*/
-
-
 const Signup = (props) => {
   const [firstName, setFirstName] = useState('');
   const [lastname, setLastName] = useState('');
@@ -107,6 +95,12 @@ const Signup = (props) => {
           <Text style={styles.loginLink}>Log In</Text>
         </TouchableOpacity>
       </View>
+      <View style={styles.loginContainer}>
+        <Text style={styles.loginText}>Don't want to Sign Up? </Text>
+        <TouchableOpacity onPress={()=> props.navigation.navigate("Home")} >
+          <Text style={styles.loginLink}>Home</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -159,9 +153,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   showPasswordButton: {
-    padding: 10,
+    padding: 12,
     backgroundColor: '#e0e0e0',
     borderRadius: 5,
+    marginBottom: 10,
+    paddingHorizontal: 168
   },
 });
 

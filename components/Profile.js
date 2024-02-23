@@ -46,13 +46,32 @@ const handleLogout = async () => {
         </View>
       </View>
       <View style={{flex: 16}}>
-        <Text style={styles.name}>{userData.name}</Text>
-        <Text style={styles.bio}>{userData.bio}</Text>
-        {/* Add more profile details here */}
-        
-        <TouchableOpacity onPress={() => props.navigation.navigate("Home")}>
-          <Text style={styles.settingsLink}>Go to Home</Text>
-        </TouchableOpacity>
+      <View style={styles.container}>
+      <View style={styles.header}>
+        <Image
+          source={require('./../assets/profile_image.jpg')}
+          style={styles.profileImage}
+        />
+        <Text style={styles.username}>@YourUsername</Text>
+      </View>
+      <View style={styles.statsContainer}>
+        <View style={styles.statItem}>
+          <Text style={styles.statNumber}>100</Text>
+          <Text style={styles.statLabel}>Tweets</Text>
+        </View>
+        <View style={styles.statItem}>
+          <Text style={styles.statNumber}>500</Text>
+          <Text style={styles.statLabel}>Followers</Text>
+        </View>
+        <View style={styles.statItem}>
+          <Text style={styles.statNumber}>200</Text>
+          <Text style={styles.statLabel}>Following</Text>
+        </View>
+      </View>
+      <Text style={styles.bio}>
+        Your bio text goes here. Keep it short and interesting!
+      </Text>
+    </View>
       </View>
       
     </View>
@@ -66,25 +85,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  profilePicture: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    marginBottom: 20,
-  },
-  name: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  bio: {
-    fontSize: 16,
-    marginBottom: 20,
-  },
-  settingsLink: {
-    color: 'blue',
-    fontSize: 16,
-  },
   appName: {
     color: "black",
     fontSize: 40,
@@ -94,6 +94,42 @@ const styles = StyleSheet.create({
     color: "#1877f2", // Facebook blue color
     fontWeight: "bold",
     fontSize: 20,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  profileImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    marginRight: 16,
+  },
+  username: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 16,
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  statLabel: {
+    fontSize: 14,
+    color: '#777',
+  },
+  bio: {
+    marginTop: 16,
+    fontSize: 16,
+    lineHeight: 24,
+    color: '#333',
   },
 });
 

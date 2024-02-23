@@ -24,7 +24,11 @@ import Home from './Home'
 const Login = (props) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
+  const togglePasswordVisibility = () => {
+    setShowPassword((prevShowPassword) => !prevShowPassword);
+  };
 
   const handleLogin = async () => {
     try {
@@ -54,8 +58,12 @@ const Login = (props) => {
         style={styles.input}
         placeholder="Password"
         onChangeText={(text) => setPassword(text)}
-        secureTextEntry
+        secureTextEntry={!showPassword}
       />
+
+      <TouchableOpacity style={styles.showPasswordButton} onPress={togglePasswordVisibility}>
+        <Text>{showPassword ? 'Hide' : 'Show'}</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
         <Text style={styles.buttonText}>Log In</Text>
@@ -70,7 +78,7 @@ const Login = (props) => {
       <View style={styles.signupContainer}>
         <Text style={styles.signupText}>Don't want to Login? </Text>
         <TouchableOpacity onPress={()=> props.navigation.navigate("Home")} >
-          <Text style={styles.signupLink}>Go to Home</Text>
+          <Text style={styles.signupLink}>Home</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -123,6 +131,13 @@ const styles = StyleSheet.create({
     color: '#1877f2', // Facebook blue color
     fontWeight: 'bold',
     fontSize: 18,
+  },
+  showPasswordButton: {
+    padding: 12,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 5,
+    marginBottom: 10,
+    paddingHorizontal: 168
   },
 });
 
