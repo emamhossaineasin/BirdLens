@@ -2,6 +2,12 @@ import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import Constants from "expo-constants";
+//import firebase from 'firebase/compat/app';
+
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
+import 'firebase/compat/firestore';
+
 //import 'dotenv/config';
 
 const firebaseConfig = {
@@ -14,6 +20,10 @@ const firebaseConfig = {
   measurementId: "G-YJ0WN74CS1"
 };
 
-export default app = initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+//export default app = initializeApp(firebaseConfig);
 export const auth = getAuth();
 export const db = getFirestore();
+export {firebase};

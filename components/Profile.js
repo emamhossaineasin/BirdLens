@@ -1,9 +1,10 @@
 // Import necessary React Native components
-import React from 'react';
+import React, {useState} from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import { getAuth, signOut } from 'firebase/auth';
+import { signOut } from 'firebase/auth';
+import { auth, db, firebase } from ".././firebase";
 
-const auth = getAuth();
+//const auth = getAuth();
 
 // Sample user data
 const userData = {
@@ -15,19 +16,20 @@ const userData = {
 
 // Profile component
 const Profile = (props) => {
-  
 
-// Example logout function
-const handleLogout = async () => {
-  try {
-    await signOut(auth);
-    // User successfully logged out
-    props.navigation.navigate("Login")
-  } catch (error) {
-    // Handle logout error
-    console.error('Error during logout:', error.message);
-  }
-};
+  const [userName, setUserName] = useState('');    
+
+  // Example logout function
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      // User successfully logged out
+      props.navigation.navigate("Login")
+    } catch (error) {
+      // Handle logout error
+      console.error('Error during logout:', error.message);
+    }
+  };
   return (
     <View style={styles.container}>
       <View
@@ -45,7 +47,7 @@ const handleLogout = async () => {
           
         </View>
       </View>
-      <View style={{flex: 16}}>
+      <View style={{flex: 20}}>
       <View style={styles.container}>
       <View style={styles.header}>
         <Image
