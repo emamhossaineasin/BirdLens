@@ -49,7 +49,7 @@ const Signup = (props) => {
               user_id : uId,
               f_name: firstName,
               l_name: lastname,
-              mobiel: mobile,
+              mobile: mobile,
               b_date: bDate,
               email: email,
             })
