@@ -1,42 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert } from "react-native";
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, TouchableWithoutFeedback } from "react-native";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db, firebase } from ".././firebase";
 import { doc, setDoc, addDoc, collection } from "firebase/firestore";
-
-//import firestore from '@react-native-firebase/firestore';
-
-// Initialize Firestore
-//firestore();
-
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 const Signup = (props) => {
 
   const [firstName, setFirstName] = useState('');
   const [lastname, setLastName] = useState('');
+  const [mobile, setMobile] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [userExist, setUserExist] = useState(false);
-  const [passwordMatch, setPasswordMatch] = useState(false);
-
-  /*const checkUserExists = async (email) => {
-    const userSnapshot = await firestore().collection('users').where('email', '==', email).get();
-  
-    return !userSnapshot.empty;
-  };
-
-
-  /*useEffect(() => {
-    const userExists = checkUserExists(email);
-  
-    if (userExists) {
-      setUserExist(true);
-    } else {
-      setUserExist(false);
-    }
-  }, [Signup]);*/
+  const [bDate, setBDate] = useState(new Date());
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  //const [manualDate, setManualDate] = useState('');
 
   useEffect(() => {
     const checkEmailAvailability = async () => {
@@ -58,21 +39,22 @@ const Signup = (props) => {
     setShowPassword((prevShowPassword) => !prevShowPassword);
   };
 
-
-  function create(){
-    addDoc(collection(db, "users"), {
-      f_name: firstName,
-      l_name: lastname,
-      email: email,
-    });
-
-  }
-
   const handleSignUp = async () => {
     if(password==confirmPassword && !userExist ){
       try {
           createUserWithEmailAndPassword(auth, email, password)
-          .then(() => create())
+          .then(() => {
+            const uId = firebase.auth().currentUser.uid;
+            firebase.firestore().collection('users').doc(firebase.auth().currentUser.uid).set({
+              user_id : uId,
+              f_name: firstName,
+              l_name: lastname,
+              mobiel: mobile,
+              b_date: bDate,
+              email: email,
+            })
+            
+          })
           .then(() => props.navigation.navigate("Login"));
         
         
@@ -83,6 +65,19 @@ const Signup = (props) => {
     else{
       Alert.alert("Password didn't match or email is already in use");
     }
+  };
+
+  const handleConfirm = (date) => {
+    setBDate(date);
+    hideDatePicker();
+  };
+
+  const showDatePicker = () => {
+    setDatePickerVisibility(true);
+  };
+
+  const hideDatePicker = () => {
+    setDatePickerVisibility(false);
   };
 
   return (
@@ -104,7 +99,34 @@ const Signup = (props) => {
         //keyboardType="name"
         autoCapitalize="none"
       />
+      <TextInput
+        style={styles.input}
+        placeholder="Mobile"
+        onChangeText={(text) => setMobile(text)}
+        //keyboardType="email-address"
+        autoCapitalize="none"
+      />
+      
+      <TouchableWithoutFeedback onPress={showDatePicker}>
+        <View style={{width: '100%',}}>
+          <TextInput
+            style={styles.input}
+            placeholder="Select Date of Birth"
+            value={bDate ? bDate.toDateString() : ''}
+            editable={false}
+          />
+        </View>
+      
+      </TouchableWithoutFeedback>
 
+      
+      <DateTimePickerModal
+        isVisible={isDatePickerVisible}
+        mode="date"
+        onConfirm={handleConfirm}
+        onCancel={hideDatePicker}
+      />
+      
       <TextInput
         style={styles.input}
         placeholder="Email address"
@@ -112,6 +134,7 @@ const Signup = (props) => {
         //keyboardType="email-address"
         autoCapitalize="none"
       />
+
       {userExist && <Text style={styles.verification}> *This email is already in use* </Text>}
       <TextInput
         style={styles.input}

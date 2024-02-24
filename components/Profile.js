@@ -51,7 +51,7 @@ const Profile = (props) => {
       <View style={styles.container}>
       <View style={styles.header}>
         <Image
-          source={require('./../assets/profile_image.jpg')}
+          source={require('./../assets/profile_image.png')}
           style={styles.profileImage}
         />
         <Text style={styles.username}>@YourUsername</Text>
