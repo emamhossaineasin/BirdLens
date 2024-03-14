@@ -11,6 +11,7 @@ import Signup from "./components/Signup";
 import Login from "./components/Login";
 import Home from "./components/Home";
 import Profile from "./components/Profile";
+import EditProfile from "./components/EditProfile";
 
 export default function App() {
   return (
@@ -20,10 +21,12 @@ export default function App() {
           headerShown: false,
         }}
       >
-        <Stack.Screen name="Home" component={Home} />
         <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="Home" component={Home} />
         <Stack.Screen name="Signup" component={Signup} />
         <Stack.Screen name="Profile" component={Profile} />
+        <Stack.Screen name="EditProfile" component={EditProfile} />
+        
       </Stack.Navigator>
     </NavigationContainer>
   );

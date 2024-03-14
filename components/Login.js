@@ -1,25 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, Image } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from ".././firebase";
-
-
-/*import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import auth from '@react-native-firebase/auth';
-import Signup from './Signup';
-import Home from './Home'
-*/
-
-/*
-  const handleLogin = () => {
-    if (email !== "" && password !== "") {
-      signInWithEmailAndPassword(auth, email, password)
-        .then(() => console.log("Login success"))
-        .catch((err) => Alert.alert("Login error", err.message));
-    }
-  };
-*/
 
 const Login = (props) => {
   const [email, setEmail] = useState('');
@@ -44,6 +26,8 @@ const Login = (props) => {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.appName}>BirdLens</Text>
+
       <Text style={styles.title}>Log In</Text>
 
       <TextInput
@@ -75,12 +59,6 @@ const Login = (props) => {
           <Text style={styles.signupLink}>Sign Up</Text>
         </TouchableOpacity>
       </View>
-      <View style={styles.signupContainer}>
-        <Text style={styles.signupText}>Don't want to Login? </Text>
-        <TouchableOpacity onPress={()=> props.navigation.navigate("Home")} >
-          <Text style={styles.signupLink}>Home</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 };
@@ -97,6 +75,12 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
+    color: '#1877f2', // Facebook blue color
+  },
+  appName: {
+    fontSize: 40,
+    fontWeight: 'bold',
+    marginBottom: 50,
     color: '#1877f2', // Facebook blue color
   },
   input: {

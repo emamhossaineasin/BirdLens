@@ -1,23 +1,25 @@
 // Import necessary React Native components
 import React, { useState, useEffect } from "react";
-import { View, ScrollView, Text, TextInput, Image, StyleSheet, TouchableOpacity, Platform } from "react-native";
+import {
+  View,
+  ScrollView,
+  Text,
+  TextInput,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+} from "react-native";
 import { signOut } from "firebase/auth";
-import { FontAwesome6 } from '@expo/vector-icons';
+import { FontAwesome6 } from "@expo/vector-icons";
 import { auth, db, firebase } from ".././firebase";
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import UploadModal from "./UploadModal";
 import Loader from "./Loader";
+import { Feather } from '@expo/vector-icons';
 
 //const auth = getAuth();
-
-// Sample user data
-const userData = {
-  name: "John Doe",
-  profilePicture: "https://example.com/profile.jpg",
-  bio: "Hello, I am a React Native developer!",
-  // Add more user-related information as needed
-};
 
 // Profile component
 const Profile = (props) => {
@@ -71,9 +73,6 @@ const Profile = (props) => {
     fetchData();
   }, []);
 
-  const openModal = () => {
-    setModalVisible(!modalVisible);
-  };
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -156,6 +155,7 @@ const Profile = (props) => {
       console.error("Error during logout:", error.message);
     }
   };
+
   return (
     <View style={styles.container}>
       <View
@@ -178,7 +178,28 @@ const Profile = (props) => {
           </TouchableOpacity>
         </View>
       </View>
-      <View style={{ flex: 20, width: '100%' }}>
+      <View style={{ flex: 20, width: "100%" }}>
+        <View style={styles.heading}>
+          <View
+            style={{flex: 1, alignItems: "flex-start", justifyContent: "flex-start", flexDirection: "row",}}
+          >
+            <FontAwesome6 name="circle-user" size={30} color="black" />
+            <Text style={{ fontSize: 25 }}> Profile</Text>
+          </View>
+          <View
+            style={{flex: 1, alignItems: "flex-end", justifyContent: "flex-end",}}
+          >
+            <TouchableOpacity
+              onPress={() => {
+                props.navigation.navigate("EditProfile");
+              }}
+              style={{ flexDirection: "row",  }}
+            >
+              <Feather name="edit" size={25} color="black" />
+              <Text style={{ fontSize: 20, marginVertical: 2, color: "black", fontWeight: "bold" }}> EDIT</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
         <View style={styles.mainContainer}>
           <View>
             {modalVisible ? (
@@ -190,7 +211,7 @@ const Profile = (props) => {
               />
             ) : null}
           </View>
-          
+
           {loading === true ? (
             <Loader color="black" />
           ) : userData ? (
@@ -204,27 +225,25 @@ const Profile = (props) => {
                       : { uri: userData.image }
                   }
                 />
-                <TouchableOpacity style={styles.uploadBtn} onPress={openModal}>
-                  <Text style={{fontSize:20}}>Change Image</Text>
-                </TouchableOpacity>
               </View>
-              <Text style={styles.subHeading}>
-                Details Information
-              </Text>
+              <Text style={styles.subHeading}>Details Information</Text>
               <View style={styles.details}>
                 <View style={styles.inputField}>
-                  <Text style={{ fontSize: 20, marginVertical: 5 }}>
+                  <Text style={{ fontSize: 20, marginVertical: 5, fontWeight: "bold" }}>
                     Full Name:
                   </Text>
                   <TextInput
                     style={styles.input}
-                    placeholderTextColor={"dimgray"}
-                    value={userData.f_name || "Not Provided Yet"}
+                    placeholderTextColor={"black"}
+                    value={
+                      userData.f_name + " " + userData.l_name ||
+                      "Not Provided Yet"
+                    }
                     editable={false}
                   />
                 </View>
                 <View style={styles.inputField}>
-                  <Text style={{ fontSize: 20, marginVertical: 5 }}>
+                  <Text style={{ fontSize: 20, marginVertical: 5, fontWeight: "bold" }}>
                     Email:
                   </Text>
                   <TextInput
@@ -235,8 +254,8 @@ const Profile = (props) => {
                   />
                 </View>
                 <View style={styles.inputField}>
-                  <Text style={{ fontSize: 20, marginVertical: 5 }}>
-                    Phone:{" "}
+                  <Text style={{ fontSize: 20, marginVertical: 5, fontWeight: "bold" }}>
+                    Phone:
                   </Text>
                   <TextInput
                     style={styles.input}
@@ -246,17 +265,28 @@ const Profile = (props) => {
                   />
                 </View>
                 <View style={styles.inputField}>
-                  <Text style={{ fontSize: 20, marginVertical: 5 }}>
+                  <Text style={{ fontSize: 20, marginVertical: 5, fontWeight: "bold" }}>
                     Date of Birth:{" "}
                   </Text>
                   <TextInput
                     style={styles.input}
                     placeholderTextColor={"dimgray"}
                     value={
-                      userData.b_date
-                        ? userData.b_date.toDate().toLocaleDateString()
+                      userData.dob
+                        ? userData.dob.toDate().toLocaleDateString()
                         : "Not Provided Yet"
                     }
+                    editable={false}
+                  />
+                </View>
+                <View style={styles.inputField}>
+                  <Text style={{ fontSize: 20, marginVertical: 5, fontWeight: "bold" }}>
+                    Address:
+                  </Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholderTextColor={"dimgray"}
+                    value={userData.address  || "Not Provided Yet"}
                     editable={false}
                   />
                 </View>
@@ -333,13 +363,12 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     width: "100%",
     marginTop: 10,
-    
   },
   subHeading: {
     alignSelf: "center",
     marginTop: 10,
     fontSize: 30,
-    fontWeight: "bold"
+    fontWeight: "bold",
   },
   inputField: {
     display: "flex",
@@ -348,13 +377,20 @@ const styles = StyleSheet.create({
   },
   input: {
     // width: '95%',
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: "dimgray",
     fontSize: 20,
     color: "black",
     borderRadius: 10,
     padding: 5,
-    color: "dimgray",
+    color: "black",
+  },
+  heading: {
+    marginTop: 20,
+    width: "90%",
+    alignSelf: "center",
+    display: "flex",
+    flexDirection: "row",
   },
 });
 
