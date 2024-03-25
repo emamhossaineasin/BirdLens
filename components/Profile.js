@@ -1,23 +1,22 @@
-// Import necessary React Native components
 import React, { useState, useEffect } from "react";
 import {
   View,
   ScrollView,
   Text,
-  TextInput,
   Image,
   StyleSheet,
   TouchableOpacity,
   Platform,
+  FlatList,
 } from "react-native";
 import { signOut } from "firebase/auth";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { auth, db, firebase } from ".././firebase";
 import * as ImagePicker from "expo-image-picker";
-import axios from "axios";
 import UploadModal from "./UploadModal";
 import Loader from "./Loader";
-import { Feather } from '@expo/vector-icons';
+import { Feather } from "@expo/vector-icons";
+import MapView, { Marker } from "react-native-maps";
 
 //const auth = getAuth();
 
@@ -26,6 +25,7 @@ const Profile = (props) => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [showMap, setShowMap] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -73,77 +73,6 @@ const Profile = (props) => {
     fetchData();
   }, []);
 
-
-  const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-    // console.log(result)
-    if (!result.canceled) {
-      uploadToCloudinary(result.assets[0].uri);
-    }
-  };
-
-  const takePicture = async () => {
-    let result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      uploadToCloudinary(result.assets[0].uri);
-    }
-  };
-
-  const uploadToCloudinary = async (uri) => {
-    try {
-      const data = new FormData();
-      data.append("file", {
-        uri,
-        type: "image/jpeg", // adjust the type based on the file type
-        name: "upload.jpg",
-      });
-
-      const preset_key = "BirdLens";
-      const cloud_name = "dw5vnzqyw";
-      const response = await axios.post(
-        `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`,
-        data,
-        {
-          withCredentials: false,
-
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-          params: {
-            upload_preset: preset_key,
-          },
-        }
-      );
-
-      const result = response.data;
-      console.log(result.url);
-      firebase
-        .firestore()
-        .collection("users")
-        .doc(firebase.auth().currentUser.uid)
-        .update({ image: result.url })
-        .then(() => {
-          setModalVisible(false);
-        })
-        .catch((err) => {
-          console.log("firebase err : " + err.code);
-        });
-    } catch (error) {
-      console.error("Error uploading to Cloudinary:", error.message);
-    }
-  };
-
   // Example logout function
   const handleLogout = async () => {
     try {
@@ -181,22 +110,41 @@ const Profile = (props) => {
       <View style={{ flex: 20, width: "100%" }}>
         <View style={styles.heading}>
           <View
-            style={{flex: 1, alignItems: "flex-start", justifyContent: "flex-start", flexDirection: "row",}}
+            style={{
+              flex: 1,
+              alignItems: "flex-start",
+              justifyContent: "flex-start",
+              flexDirection: "row",
+            }}
           >
             <FontAwesome6 name="circle-user" size={30} color="black" />
             <Text style={{ fontSize: 25 }}> Profile</Text>
           </View>
           <View
-            style={{flex: 1, alignItems: "flex-end", justifyContent: "flex-end",}}
+            style={{
+              flex: 1,
+              alignItems: "flex-end",
+              justifyContent: "flex-end",
+            }}
           >
             <TouchableOpacity
               onPress={() => {
                 props.navigation.navigate("EditProfile");
               }}
-              style={{ flexDirection: "row",  }}
+              style={{ flexDirection: "row" }}
             >
               <Feather name="edit" size={25} color="black" />
-              <Text style={{ fontSize: 20, marginVertical: 2, color: "black", fontWeight: "bold" }}> EDIT</Text>
+              <Text
+                style={{
+                  fontSize: 20,
+                  marginVertical: 2,
+                  color: "black",
+                  fontWeight: "bold",
+                }}
+              >
+                {" "}
+                EDIT
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -215,7 +163,7 @@ const Profile = (props) => {
           {loading === true ? (
             <Loader color="black" />
           ) : userData ? (
-            <ScrollView contentContainerStyle={styles.content}>
+            <View style={styles.content}>
               <View style={styles.profilePic}>
                 <Image
                   style={styles.image}
@@ -226,72 +174,97 @@ const Profile = (props) => {
                   }
                 />
               </View>
-              <Text style={styles.subHeading}>Details Information</Text>
-              <View style={styles.details}>
-                <View style={styles.inputField}>
-                  <Text style={{ fontSize: 20, marginVertical: 5, fontWeight: "bold" }}>
-                    Full Name:
-                  </Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholderTextColor={"black"}
-                    value={
-                      userData.f_name + " " + userData.l_name ||
-                      "Not Provided Yet"
-                    }
-                    editable={false}
-                  />
-                </View>
-                <View style={styles.inputField}>
-                  <Text style={{ fontSize: 20, marginVertical: 5, fontWeight: "bold" }}>
-                    Email:
-                  </Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholderTextColor={"dimgray"}
-                    value={userData.email || "Not Provided Yet"}
-                    editable={false}
-                  />
-                </View>
-                <View style={styles.inputField}>
-                  <Text style={{ fontSize: 20, marginVertical: 5, fontWeight: "bold" }}>
-                    Phone:
-                  </Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholderTextColor={"dimgray"}
-                    value={userData.mobile || "Not Provided Yet"}
-                    editable={false}
-                  />
-                </View>
-                <View style={styles.inputField}>
-                  <Text style={{ fontSize: 20, marginVertical: 5, fontWeight: "bold" }}>
-                    Date of Birth:{" "}
-                  </Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholderTextColor={"dimgray"}
-                    value={
-                      userData.dob
-                        ? userData.dob.toDate().toLocaleDateString()
-                        : "Not Provided Yet"
-                    }
-                    editable={false}
-                  />
-                </View>
-                <View style={styles.inputField}>
-                  <Text style={{ fontSize: 20, marginVertical: 5, fontWeight: "bold" }}>
-                    Address:
-                  </Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholderTextColor={"dimgray"}
-                    value={userData.address  || "Not Provided Yet"}
-                    editable={false}
-                  />
-                </View>
+              <Text style={styles.name}>
+                {userData.f_name + " " + userData.l_name}
+              </Text>
+
+              <View style={{ marginTop: 20 }}>
+                <Text style={styles.details}>Details</Text>
+
+                <Text style={styles.info}>Email: {userData.email}</Text>
+
+                <Text style={styles.info}>
+                  Phone: {userData.phone || "Not Provided Yet"}
+                </Text>
+
+                <Text style={styles.info}>
+                  Date of Birth:{" "}
+                  {userData.dob
+                    ? userData.dob.toDate().toLocaleDateString("en-US", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })
+                    : "Not Provided Yet"}
+                </Text>
+
+                <Text style={styles.info}>
+                  Address:{" "}
+                  {userData.district
+                    ? userData.upazila +
+                      ", " +
+                      userData.district +
+                      ", " +
+                      userData.division
+                    : "Not Provided Yet"}
+                </Text>
               </View>
-            </ScrollView>
+              {!showMap && userData.latitude && (
+                <TouchableOpacity
+                  onPress={() => setShowMap(true)}
+                  style={{ flexDirection: "row" }}
+                >
+                  <Feather name="map-pin" size={24} color="black" />
+                  <Text
+                    style={{ color: "black", fontSize: 20, fontWeight: "bold" }}
+                  >
+                    Show Map Location
+                  </Text>
+                </TouchableOpacity>
+              )}
+              {showMap && (
+                <TouchableOpacity
+                  onPress={() => setShowMap(false)}
+                  style={{ flexDirection: "row" }}
+                >
+                  <Feather name="map-pin" size={24} color="black" />
+                  <Text
+                    style={{ color: "black", fontSize: 20, fontWeight: "bold" }}
+                  >
+                    Hide Map Location
+                  </Text>
+                </TouchableOpacity>
+              )}
+              {showMap && (
+                <MapView
+                  style={styles.map}
+                  region={{
+                    latitude: userData.latitude,
+                    longitude: userData.longitude,
+                    latitudeDelta: 0.0922,
+                    longitudeDelta: 0.0421,
+                  }}
+                >
+                  <Marker
+                    coordinate={{
+                      latitude: userData.latitude,
+                      longitude: userData.longitude,
+                      latitudeDelta: 0.0922,
+                      longitudeDelta: 0.0421,
+                    }}
+                    title="Marker"
+                  ></Marker>
+                </MapView>
+              )}
+              <TouchableOpacity
+                onPress={() => {
+                  props.navigation.navigate("CreatePost");
+                }}
+                style={styles.postButton}
+              >
+                <Text style={styles.buttonText}>Create a Post</Text>
+              </TouchableOpacity>
+            </View>
           ) : (
             <Text style={{ justifyContent: "center", alignItems: "center" }}>
               No user data available
@@ -324,17 +297,10 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "column",
   },
-  heading: {
-    marginTop: 10,
-    height: 40,
-    width: "100%",
-    alignSelf: "center",
-    display: "flex",
-    flexDirection: "row",
-  },
   content: {
     marginTop: 10,
-    width: "90%",
+    marginBottom: 10,
+    width: "95%",
     alignSelf: "center",
   },
   image: {
@@ -357,23 +323,21 @@ const styles = StyleSheet.create({
     margin: 5,
     alignSelf: "center",
   },
-  details: {
-    display: "flex",
-    flexDirection: "column",
-    alignSelf: "center",
-    width: "100%",
-    marginTop: 10,
-  },
-  subHeading: {
+  name: {
     alignSelf: "center",
     marginTop: 10,
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: "bold",
   },
-  inputField: {
-    display: "flex",
-    flexDirection: "column",
-    // width : '100%'
+  info: {
+    fontSize: 20,
+    marginVertical: 5,
+    fontWeight: "bold",
+  },
+  details: {
+    fontSize: 30,
+    marginVertical: 5,
+    fontWeight: "bold",
   },
   input: {
     // width: '95%',
@@ -387,10 +351,68 @@ const styles = StyleSheet.create({
   },
   heading: {
     marginTop: 20,
-    width: "90%",
+    width: "95%",
     alignSelf: "center",
     display: "flex",
     flexDirection: "row",
+  },
+  postButton: {
+    backgroundColor: "#1877f2", // Facebook blue color
+    padding: 10,
+    borderRadius: 10,
+    width: "100%",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  buttonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 17,
+  },
+  postContainer: {
+    backgroundColor: "#ffffff",
+    marginTop: 2,
+    overflow: "hidden",
+    elevation: 3,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 10,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  author: {
+    fontWeight: "bold",
+    fontSize: 18,
+  },
+  message: {
+    paddingHorizontal: 10,
+    marginBottom: 10,
+    fontSize: 18,
+  },
+  postImage: {
+    width: "100%",
+    height: 370,
+  },
+  actionsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#cccccc",
+  },
+  map: {
+    width: "100%",
+    height: 250,
+    borderRadius: 10,
+    alignSelf: "center",
+    marginTop: 15,
   },
 });
 

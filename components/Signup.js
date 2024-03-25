@@ -14,22 +14,24 @@ import { doc, setDoc, addDoc, collection } from "firebase/firestore";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 const Signup = (props) => {
-  const [firstName, setFirstName] = useState("");
-  const [lastname, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [data, setData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [userExist, setUserExist] = useState(false);
-  
+
   useEffect(() => {
     const checkEmailAvailability = async () => {
       try {
-        if (email.trim() !== "") {
+        if (data.email.trim() !== "") {
           const querySnapshot = await firebase
             .firestore()
             .collection("users")
-            .where("email", "==", email)
+            .where("email", "==", data.email)
             .get();
           setUserExist(!querySnapshot.empty);
         }
@@ -39,7 +41,7 @@ const Signup = (props) => {
     };
 
     checkEmailAvailability();
-  }, [email]);
+  }, [data.email]);
 
   const togglePasswordVisibility = () => {
     setShowPassword((prevShowPassword) => !prevShowPassword);
@@ -47,37 +49,73 @@ const Signup = (props) => {
 
   const handleSignUp = async () => {
     if (
-      (firstName === '' || lastname === '' || email === '' || password === '' || confirmPassword === '')
+      data.firstName === "" ||
+      data.lastName === "" ||
+      data.email === "" ||
+      data.password === "" ||
+      data.confirmPassword === "" ||
+      data.password != data.confirmPassword ||
+      userExist
     ) {
+      if (password != confirmPassword) {
+        Alert.alert("Password didn't matched");
+      }
+      if (userExist) {
+        Alert.alert("User with this email already esixt");
+      }
       Alert.alert("Fill all input");
-    } else {
-      if (password == confirmPassword && !userExist) {
-        try {
-          createUserWithEmailAndPassword(auth, email, password)
+      setTimeout(() => {
+        setSelectType(false);
+      }, 5000);
+      return;
+    }
+    try {
+      
+      await firebase
+        .auth()
+        .createUserWithEmailAndPassword(data.email, data.password)
+        .then(() => {
+          firebase
+            .auth()
+            .currentUser.sendEmailVerification({
+              handleCodeInApp: true,
+              url: "https://birdlens-7c3ad.firebaseapp.com",
+            })
+            .then(() => {
+              
+              alert("Verification email sent");
+              
+              props.navigation.navigate("Login");
+            })
+            .catch((err) => {
+              console.log(err);
+            })
             .then(() => {
               const uId = firebase.auth().currentUser.uid;
-              firebase
-                .firestore()
-                .collection("users")
-                .doc(firebase.auth().currentUser.uid)
-                .set({
+              firebase.firestore().collection('users').doc(firebase.auth().currentUser.uid).set({
                   user_id: uId,
-                  f_name: firstName,
-                  l_name: lastname,
-                  email: email,
-                  mobile: "",
+                  f_name: data.firstName,
+                  l_name: data.lastName,
+                  email: data.email,
+                  phone: "",
                   dob: "",
                   image: "",
-                  address: "",
+                  division: "",
+                  district: "",
+                  upazila: "",
+                  latitude: "",
+                  longitude: "",
                 });
             })
-            .then(() => props.navigation.navigate("Login"));
-        } catch (error) {
-          console.error("Error creating user:", error);
-        }
-      } else {
-        Alert.alert("Password didn't match or email is already in use");
-      }
+            .catch((err) => {
+              console.log(err);
+            });
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    } catch (err) {
+      console.log(err);
     }
   };
 
@@ -89,7 +127,7 @@ const Signup = (props) => {
       <TextInput
         style={styles.input}
         placeholder="First Name"
-        onChangeText={(text) => setFirstName(text)}
+        onChangeText={(text) => setData({ ...data, firstName: text })}
         //keyboardType="name"
         autoCapitalize="none"
       />
@@ -97,33 +135,34 @@ const Signup = (props) => {
       <TextInput
         style={styles.input}
         placeholder="Last Name"
-        onChangeText={(text) => setLastName(text)}
+        onChangeText={(text) => setData({ ...data, lastName: text })}
         //keyboardType="name"
         autoCapitalize="none"
       />
       <TextInput
         style={styles.input}
         placeholder="Email address"
-        onChangeText={(text) => setEmail(text)}
+        onChangeText={(text) => setData({ ...data, email: text })}
         //keyboardType="email-address"
         autoCapitalize="none"
       />
 
       {userExist && (
         <Text style={styles.verification}>
-          {" "}*This email is already in use*{" "}
+          {" "}
+          *This email is already in use*{" "}
         </Text>
       )}
       <TextInput
         style={styles.input}
         placeholder="Password"
-        onChangeText={(text) => setPassword(text)}
+        onChangeText={(text) => setData({ ...data, password: text })}
         secureTextEntry={!showPassword}
       />
       <TextInput
         style={styles.input}
         placeholder="Confirm Password"
-        onChangeText={(text) => setConfirmPassword(text)}
+        onChangeText={(text) => setData({ ...data, confirmPassword: text })}
         secureTextEntry={!showPassword}
       />
       <TouchableOpacity
@@ -143,7 +182,6 @@ const Signup = (props) => {
           <Text style={styles.loginLink}>Log In</Text>
         </TouchableOpacity>
       </View>
-      
     </View>
   );
 };
@@ -158,9 +196,9 @@ const styles = StyleSheet.create({
   },
   appName: {
     fontSize: 40,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 50,
-    color: '#1877f2', // Facebook blue color
+    color: "#1877f2", // Facebook blue color
   },
   title: {
     fontSize: 24,

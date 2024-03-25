@@ -22,6 +22,8 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { getFormatedDate } from "react-native-modern-datepicker";
 import DateModal from "./DateModal";
+import MapView, { Marker } from "react-native-maps";
+import * as Location from "expo-location";
 
 const EditProfile = (props) => {
   const [userData, setUserData] = useState(null);
@@ -44,12 +46,9 @@ const EditProfile = (props) => {
     setOpenStartDatePicker(!openStartDatePicker);
   };
 
-  const defaultDivision = { id: null, name: "Select Division" };
-  const defaultDistrict = { id: null, name: "Select District" };
-  const defaultUpazila = { id: null, name: "Select Upazila" };
-  const [selectedDivision, setSelectedDivision] = useState(defaultDivision);
-  const [selectedDistrict, setSelectedDistrict] = useState(defaultDistrict);
-  const [selectedUpazila, setSelectedUpazila] = useState(defaultUpazila);
+  const [selectedDivision, setSelectedDivision] = useState(null);
+  const [selectedDistrict, setSelectedDistrict] = useState(null);
+  const [selectedUpazila, setSelectedUpazila] = useState(null);
   const [divisions, setDivisions] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [upazilas, setUpazilas] = useState([]);
@@ -57,11 +56,32 @@ const EditProfile = (props) => {
   const [showMessage, setShowMessage] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [initialLocation, setInitialLocation] = useState({
+    latitude: 23.8103,
+    longitude: 90.4125,
+    latitudeDelta: 0.0922,
+    longitudeDelta: 0.0421,
+  });
 
   useEffect(() => {
     // Validate phone number when userData changes
-    if (userData && userData.phone && userData.phone.length !== 11) {
-      setPhoneError("Please enter a valid phone number with 11 digits.");
+    if (userData && userData.phone) {
+      const slicedString = userData.phone.slice(0, 3);
+      if (
+        userData.phone.length == 11 &&
+        (slicedString == "011" ||
+          slicedString == "013" ||
+          slicedString == "014" ||
+          slicedString == "015" ||
+          slicedString == "016" ||
+          slicedString == "017" ||
+          slicedString == "018" ||
+          slicedString == "019")
+      ) {
+        setPhoneError("");
+      } else {
+        setPhoneError("Mobile Number is invalid");
+      }
     } else {
       setPhoneError("");
     }
@@ -81,14 +101,17 @@ const EditProfile = (props) => {
   }, []);
 
   useEffect(() => {
-    // Fetch districts
     const fetchDistricts = async () => {
       try {
         if (selectedDivision) {
           // Add a check here
           const response = require("./../assets/districts.json");
+          const selected_division = divisions.filter(
+            (division) => division.name === selectedDivision
+          );
+          // console.log(selected_division)
           const requiredDistricts = response[2].data.filter(
-            (district) => district.division_id === selectedDivision.id
+            (district) => district.division_id === selected_division[0].id
           );
           setDistricts(requiredDistricts);
         }
@@ -105,8 +128,11 @@ const EditProfile = (props) => {
         if (selectedDistrict) {
           // Add a check here
           const response = require("./../assets/upazilas.json");
+          const selected_district = districts.filter(
+            (district) => district.name === selectedDistrict
+          );
           const requiredUpazilas = response[2].data.filter(
-            (upazila) => upazila.district_id === selectedDistrict.id
+            (upazila) => upazila.district_id === selected_district[0].id
           );
           setUpazilas(requiredUpazilas);
         }
@@ -115,45 +141,64 @@ const EditProfile = (props) => {
       }
     };
     fetchUpazilas();
-  }, [selectedDivision, selectedDistrict]);
+  }, [selectedDistrict]);
 
   useEffect(() => {
     const fetchData = () => {
       try {
-        setLoading(true);
-        const userDocRef = firebase
+        return firebase
           .firestore()
           .collection("users")
-          .doc(firebase.auth().currentUser.uid);
+          .doc(firebase.auth().currentUser.uid)
+          .onSnapshot(
+            (doc) => {
+              if (doc.exists) {
+                const userData = doc.data();
+                setUserData(userData);
+                setSelectedDivision(userData.division);
+                setSelectedDistrict(userData.district);
+                setSelectedUpazila(userData.upazila);
+                userData.latitude
+                  ? setInitialLocation({
+                      ...initialLocation,
+                      latitude: userData.latitude,
+                      longitude: userData.longitude,
+                    })
+                  : null;
 
-        // Use onSnapshot to listen for real-time updates
-        const unsubscribe = userDocRef.onSnapshot((doc) => {
-          if (doc.exists) {
-            setUserData(doc.data());
-            setLoading(false);
-            if (userData.dob) {
-              const date = new Date(userData.dob.toDate());
-              setSelectedStartDate(getFormatedDate(date, "YYYY/MM/DD"));
+                if (userData.dob) {
+                  const date = new Date(userData.dob.toDate());
+                  setSelectedStartDate(getFormatedDate(date, "YYYY/MM/DD"));
+                }
+              }
+            },
+            (error) => {
+              console.error("Error fetching user data:", error);
             }
-          } else {
-            // Handle the case where the document doesn't exist
-            setUserData(null);
-            setLoading(false);
-          }
-        });
-
-        // Clean up the listener when the component unmounts or changes
-        return () => {
-          unsubscribe();
-        };
+          );
       } catch (err) {
         console.log(err.message);
-        setLoading(false);
       }
     };
-
     fetchData();
   }, []);
+
+  const userLocation = async () => {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      setErrorMsg("Permission to access location was denied");
+      return;
+    }
+    let location = await Location.getCurrentPositionAsync({
+      enableHighAccuracy: true,
+    });
+    setInitialLocation({
+      ...initialLocation,
+      latitude: location.coords.latitude,
+      longitude: location.coords.longitude,
+    });
+    // console.log(location.coords.latitude, location.coords.longitude);
+  };
 
   const handleSubmit = async () => {
     try {
@@ -173,10 +218,15 @@ const EditProfile = (props) => {
         .update({
           f_name: userData.f_name,
           l_name: userData.l_name,
-          mobile: userData.mobile,
+          phone: userData.phone,
           dob: timestamp,
-          address: selectedDivision.name + ", " + selectedDistrict.name + ", " + selectedUpazila.name
-          
+          division: selectedDivision,
+          district: selectedDistrict,
+          upazila: selectedUpazila,
+          address:
+            selectedDivision + ", " + selectedDistrict + ", " + selectedUpazila,
+          latitude: initialLocation.latitude,
+          longitude: initialLocation.longitude,
         })
         .then(() => {
           setShowMessage(true);
@@ -200,12 +250,13 @@ const EditProfile = (props) => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [4, 3],
+      aspect: [1, 1],
       quality: 1,
     });
     // console.log(result)
     if (!result.canceled) {
       uploadToCloudinary(result.assets[0].uri);
+      setModalVisible(false);
     }
   };
 
@@ -219,6 +270,7 @@ const EditProfile = (props) => {
 
     if (!result.canceled) {
       uploadToCloudinary(result.assets[0].uri);
+      setModalVisible(false);
     }
   };
 
@@ -268,13 +320,16 @@ const EditProfile = (props) => {
 
   return (
     <View style={styles.container}>
-      {openStartDatePicker ? <DateModal openStartDatePicker={openStartDatePicker}
-                startDate={startDate} startedDate={startedDate}
-                handleChangeStartDate={handleChangeStartDate}
-                setSelectedStartDate={setSelectedStartDate}
-                handleOnPressStartDate={handleOnPressStartDate}
-
-            /> : null}
+      {openStartDatePicker ? (
+        <DateModal
+          openStartDatePicker={openStartDatePicker}
+          startDate={startDate}
+          startedDate={startedDate}
+          handleChangeStartDate={handleChangeStartDate}
+          setSelectedStartDate={setSelectedStartDate}
+          handleOnPressStartDate={handleOnPressStartDate}
+        />
+      ) : null}
       <View
         style={{
           padding: 15,
@@ -332,14 +387,17 @@ const EditProfile = (props) => {
               <Text style={styles.subHeading}>Edit Information</Text>
 
               {userData ? (
-                <KeyboardAvoidingView
-                  style={{ flex: 1 }}
-                  behavior={Platform.OS === "ios" ? "padding" : "height"}
-                >
+                
                   <ScrollView contentContainerStyle={styles.content}>
                     <View style={styles.details}>
                       <View style={styles.inputField}>
-                        <Text style={{ fontSize: 20, marginVertical: 5, fontWeight: "bold" }}>
+                        <Text
+                          style={{
+                            fontSize: 20,
+                            marginVertical: 5,
+                            fontWeight: "bold",
+                          }}
+                        >
                           First Name:
                         </Text>
                         <TextInput
@@ -353,7 +411,13 @@ const EditProfile = (props) => {
                         />
                       </View>
                       <View style={styles.inputField}>
-                        <Text style={{ fontSize: 20, marginVertical: 5, fontWeight: "bold" }}>
+                        <Text
+                          style={{
+                            fontSize: 20,
+                            marginVertical: 5,
+                            fontWeight: "bold",
+                          }}
+                        >
                           Last Name:
                         </Text>
                         <TextInput
@@ -366,19 +430,26 @@ const EditProfile = (props) => {
                           }
                         />
                       </View>
-                      
+
                       <View style={styles.inputField}>
-                        <Text style={{ fontSize: 20, marginVertical: 5, fontWeight: "bold" }}>
-                          Phone:{" "}
+                        <Text
+                          style={{
+                            fontSize: 20,
+                            marginVertical: 5,
+                            fontWeight: "bold",
+                          }}
+                        >
+                          Phone:
                         </Text>
                         <TextInput
                           style={styles.input}
                           placeholderTextColor={"dimgray"}
+                          placeholder="Enter your phone number"
                           cursorColor={"black"}
                           keyboardType="phone-pad"
-                          value={userData.mobile }
+                          value={userData.phone}
                           onChangeText={(text) =>
-                            setUserData({ ...userData, mobile: text })
+                            setUserData({ ...userData, phone: text })
                           }
                         />
                         {phoneError ? (
@@ -386,7 +457,13 @@ const EditProfile = (props) => {
                         ) : null}
                       </View>
                       <View style={styles.inputField}>
-                        <Text style={{ fontSize: 20, marginVertical: 5, fontWeight: "bold" }}>
+                        <Text
+                          style={{
+                            fontSize: 20,
+                            marginVertical: 5,
+                            fontWeight: "bold",
+                          }}
+                        >
                           Date of Birth:{" "}
                         </Text>
                         <TouchableOpacity onPress={handleOnPressStartDate}>
@@ -400,8 +477,14 @@ const EditProfile = (props) => {
                       </View>
                       <View>
                         {/* Division Dropdown */}
-                        <Text style={{ fontSize: 20, marginVertical: 5, fontWeight: "bold" }}>
-                          Select Division:{" "}
+                        <Text
+                          style={{
+                            fontSize: 20,
+                            marginVertical: 5,
+                            fontWeight: "bold",
+                          }}
+                        >
+                          Select Division:
                         </Text>
                         <Picker
                           selectedValue={selectedDivision}
@@ -410,19 +493,26 @@ const EditProfile = (props) => {
                           }
                           style={styles.pickerStyle}
                         >
-                          {[defaultDivision, ...divisions].map(
+                          {[{ name: "Select Division" }, ...divisions].map(
                             (division, index) => (
                               <Picker.Item
                                 key={index}
                                 label={division.name}
-                                value={division}
+                                value={division.name}
+                                enabled={index !== 0}
                               />
                             )
                           )}
                         </Picker>
 
-                        <Text style={{ fontSize: 20, marginVertical: 5, fontWeight: "bold" }}>
-                          Select District:{" "}
+                        <Text
+                          style={{
+                            fontSize: 20,
+                            marginVertical: 5,
+                            fontWeight: "bold",
+                          }}
+                        >
+                          Select District:
                         </Text>
                         <Picker
                           selectedValue={selectedDistrict}
@@ -431,19 +521,26 @@ const EditProfile = (props) => {
                           }
                           style={styles.pickerStyle}
                         >
-                          {[defaultDistrict, ...districts].map(
+                          {[{ name: "Select District" }, ...districts].map(
                             (district, index) => (
                               <Picker.Item
                                 key={index}
                                 label={district.name}
-                                value={district}
+                                value={district.name}
+                                enabled={index !== 0}
                               />
                             )
                           )}
                         </Picker>
 
-                        <Text style={{ fontSize: 20, marginVertical: 5, fontWeight: "bold" }}>
-                          Select Upazila:{" "}
+                        <Text
+                          style={{
+                            fontSize: 20,
+                            marginVertical: 5,
+                            fontWeight: "bold",
+                          }}
+                        >
+                          Select Upazila:
                         </Text>
                         <Picker
                           selectedValue={selectedUpazila}
@@ -452,16 +549,49 @@ const EditProfile = (props) => {
                           }
                           style={styles.pickerStyle}
                         >
-                          {[defaultUpazila, ...upazilas].map(
+                          {[{ name: "Select Upazila" }, ...upazilas].map(
                             (upazila, index) => (
                               <Picker.Item
                                 key={index}
                                 label={upazila.name}
-                                value={upazila}
+                                value={upazila.name}
+                                enabled={index !== 0}
                               />
                             )
                           )}
                         </Picker>
+                      </View>
+                      <View style={{ marginTop: 50 }}>
+                        <TouchableOpacity
+                          onPress={() => {
+                            userLocation();
+                          }}
+                          style={styles.locationBtn}
+                        >
+                          <Text style={{ fontSize: 15, color: "black" }}>
+                            Get Your Current Location
+                          </Text>
+                        </TouchableOpacity>
+
+                        <MapView
+                          style={styles.map}
+                          region={{
+                            latitude: initialLocation.latitude,
+                            longitude: initialLocation.longitude,
+                            latitudeDelta: 0.0922,
+                            longitudeDelta: 0.0421,
+                          }}
+                        >
+                          <Marker
+                            coordinate={{
+                              latitude: initialLocation.latitude,
+                              longitude: initialLocation.longitude,
+                              latitudeDelta: 0.0922,
+                              longitudeDelta: 0.0421,
+                            }}
+                            title="Marker"
+                          ></Marker>
+                        </MapView>
                       </View>
                       <View style={styles.btnView}>
                         {showMessage ? (
@@ -481,7 +611,7 @@ const EditProfile = (props) => {
                       </View>
                     </View>
                   </ScrollView>
-                </KeyboardAvoidingView>
+                
               ) : (
                 <Loader color="black" />
               )}
@@ -607,5 +737,24 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     justifyContent: "center",
     alignItems: "center",
+  },
+  map: {
+    width: "100%",
+    height: 250,
+    borderRadius: 10,
+    alignSelf: "center",
+    marginTop: 15,
+  },
+  locationBtn: {
+    width: "60%",
+    height: 50,
+    backgroundColor: "lightgray",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 5,
+    borderRadius: 5,
+    alignSelf: "flex-end",
+    borderWidth: 1,
+    borderColor: "black",
   },
 });

@@ -10,8 +10,12 @@ const Stack = createNativeStackNavigator();
 import Signup from "./components/Signup";
 import Login from "./components/Login";
 import Home from "./components/Home";
+import CreatePost from "./components/CreatePost";
 import Profile from "./components/Profile";
 import EditProfile from "./components/EditProfile";
+import Search from "./components/Search";
+import AboutUs from "./components/AboutUs";
+
 
 export default function App() {
   return (
@@ -26,6 +30,9 @@ export default function App() {
         <Stack.Screen name="Signup" component={Signup} />
         <Stack.Screen name="Profile" component={Profile} />
         <Stack.Screen name="EditProfile" component={EditProfile} />
+        <Stack.Screen name="CreatePost" component={CreatePost} />
+        <Stack.Screen name="Search" component={Search} />
+        <Stack.Screen name="AboutUs" component={AboutUs} />
         
       </Stack.Navigator>
     </NavigationContainer>
