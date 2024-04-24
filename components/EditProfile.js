@@ -69,8 +69,7 @@ const EditProfile = (props) => {
       const slicedString = userData.phone.slice(0, 3);
       if (
         userData.phone.length == 11 &&
-        (slicedString == "011" ||
-          slicedString == "013" ||
+        (slicedString == "013" ||
           slicedString == "014" ||
           slicedString == "015" ||
           slicedString == "016" ||
@@ -354,7 +353,7 @@ const EditProfile = (props) => {
           </TouchableOpacity>
         </View>
       </View>
-      <View style={{ flex: 20, width: "100%" }}>
+      <View style={{ flex: 20, width: "100%", backgroundColor: "#eee" }}>
         <View style={styles.mainContainer}>
           <View>
             {modalVisible ? (
@@ -746,7 +745,7 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
   locationBtn: {
-    width: "60%",
+    width: "100%",
     height: 50,
     backgroundColor: "lightgray",
     alignItems: "center",

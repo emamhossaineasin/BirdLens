@@ -16,70 +16,61 @@ import { Rating } from "react-native-ratings";
 
 
 const AboutUs = (props) => {
+ 
   const [rating, setRating] = useState(0);
   const [averageRating, setAverageRating] = useState(0);
+  const userId = firebase.auth().currentUser.uid;
 
   useEffect(() => {
     // Fetch average rating from Firestore
     fetchAverageRating();
+    // Fetch previous rating from Firestore
+    fetchPreviousRating();
   }, []);
 
   const fetchAverageRating = async () => {
-    const ratingsRef = firebase.firestore().collection("ratings");
-    const snapshot = await ratingsRef.get();
+    const usersRef = firebase.firestore().collection("users");
+    const snapshot = await usersRef.get();
     let totalRating = 0;
     let count = 0;
     snapshot.forEach((doc) => {
-      totalRating += doc.data().rating;
-      count++;
+      if (doc.exists && doc.data().rating) {
+        totalRating += doc.data().rating;
+        count++;
+      }
     });
     const avgRating = count > 0 ? totalRating / count : 0;
     setAverageRating(avgRating);
+  };
+
+  const fetchPreviousRating = async () => {
+    try {
+      const userRef = firebase.firestore().collection("users").doc(userId);
+      const userDoc = await userRef.get();
+      if (userDoc.exists && userDoc.data().rating) {
+        // Set the previous rating to the state
+        setRating(userDoc.data().rating);
+      }
+    } catch (error) {
+      console.error('Error fetching previous rating:', error);
+    }
   };
 
   const handleRating = (ratingValue) => {
     setRating(ratingValue);
   };
 
-  useEffect(() => {
-    // Fetch previous rating from Firestore or any other data source
-    const fetchPreviousRating = async () => {
-      try {
-        const userId = firebase.auth().currentUser.uid;
-        const userRatingRef = firebase.firestore().collection('ratings').doc(userId);
-        const userRatingDoc = await userRatingRef.get();
-        if (userRatingDoc.exists) {
-          // Set the previous rating to the state
-          setRating(userRatingDoc.data().rating);
-        }
-      } catch (error) {
-        console.error('Error fetching previous rating:', error);
-      }
-    };
-  
-    fetchPreviousRating();
-  }, []);
-
   const handleSaveRating = async () => {
     try {
-      // Check if the user has already rated
-      const userId = firebase.auth().currentUser.uid;
-      const userRatingRef = firebase
-        .firestore()
-        .collection("ratings")
-        .doc(userId);
-      const userRatingDoc = await userRatingRef.get();
-      if (userRatingDoc.exists) {
-        // Update existing rating
-        await userRatingRef.update({ rating });
-        alert("Rating updated successfully")
-      } else {
-        // Add new rating
-        await userRatingRef.set({ rating });
-        alert("Rating submitted successfully")
+      const userRef = firebase.firestore().collection("users").doc(userId);
+      const userDoc = await userRef.get();
+      if (userDoc.exists) {
+        // Update or set the rating in the user document
+        await userRef.set({ rating }, { merge: true });
+        alert("Rating submitted successfully");
+        // Update average rating
+        fetchAverageRating();
       }
-      // Update average rating
-      fetchAverageRating();
     } catch (error) {
       console.error("Error saving rating:", error);
     }
@@ -111,14 +102,15 @@ const AboutUs = (props) => {
       </View>
       <View
         style={{
-          flex: 20,
+          flex: 20, backgroundColor: "#fff"
+
         }}
       >
         <View style={{ flex: 1 }}>
           <YoutubePlayer
             height={300}
             videoId="G-rsmbK7gdY"
-            play={true}
+            play={false}
             fullscreen={true}
             loop={false}
             style={{ alignSelf: "stretch", height: 300 }}

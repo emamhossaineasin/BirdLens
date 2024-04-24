@@ -107,7 +107,7 @@ const Profile = (props) => {
           </TouchableOpacity>
         </View>
       </View>
-      <View style={{ flex: 20, width: "100%" }}>
+      <View style={{ flex: 20, width: "100%", backgroundColor: "#fff" }}>
         <View style={styles.heading}>
           <View
             style={{
