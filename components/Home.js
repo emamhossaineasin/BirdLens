@@ -239,7 +239,7 @@ const Home = (props) => {
       </View>
       <View
         style={{
-          flex: 20,
+          flex: 16,
         }}
       >
         {commentModal ? (
@@ -267,7 +267,7 @@ const Home = (props) => {
               }}
               style={{ flexDirection: "row" }}
             >
-              <Ionicons name="search-circle-outline" size={38} color="black" />
+              <Ionicons name="search-circle-outline" size={40} color="black" />
               <Text style={styles.searchButton}>Search</Text>
             </TouchableOpacity>
           </View>
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
     display: "flex",
     marginTop: 10,
     width: "100%",
-    height: 20,
+    height: 30,
     flexDirection: "row",
   },
   likeBtn: {

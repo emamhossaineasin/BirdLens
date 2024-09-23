@@ -353,7 +353,7 @@ const EditProfile = (props) => {
           </TouchableOpacity>
         </View>
       </View>
-      <View style={{ flex: 20, width: "100%", backgroundColor: "#eee" }}>
+      <View style={{ flex: 16, width: "100%", backgroundColor: "#eee" }}>
         <View style={styles.mainContainer}>
           <View>
             {modalVisible ? (
@@ -380,7 +380,7 @@ const EditProfile = (props) => {
                   }
                 />
                 <TouchableOpacity style={styles.uploadBtn} onPress={openModal}>
-                  <Text style={{ fontSize: 20 }}>Change Image</Text>
+                  <Text style={{ fontSize: 16 }}>Change Image</Text>
                 </TouchableOpacity>
               </View>
               <Text style={styles.subHeading}>Edit Information</Text>

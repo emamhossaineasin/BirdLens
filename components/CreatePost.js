@@ -157,7 +157,7 @@ const CreatePost = (props) => {
       </View>
       <View
         style={{
-          flex: 20,
+          flex: 16,
         }}
       >
         <View>

@@ -244,7 +244,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#e0e0e0",
     borderRadius: 5,
     marginBottom: 10,
-    paddingHorizontal: 168,
+    width: "100%",
+    alignItems: "center",
   },
   verification: {
     color: "red",

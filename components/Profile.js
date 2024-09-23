@@ -17,6 +17,8 @@ import UploadModal from "./UploadModal";
 import Loader from "./Loader";
 import { Feather } from "@expo/vector-icons";
 import MapView, { Marker } from "react-native-maps";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 
 //const auth = getAuth();
 
@@ -76,6 +78,7 @@ const Profile = (props) => {
   // Example logout function
   const handleLogout = async () => {
     try {
+      await AsyncStorage.removeItem('user')
       await signOut(auth);
       // User successfully logged out
       props.navigation.navigate("Login");
@@ -107,7 +110,7 @@ const Profile = (props) => {
           </TouchableOpacity>
         </View>
       </View>
-      <View style={{ flex: 20, width: "100%", backgroundColor: "#fff" }}>
+      <View style={{ flex: 16, width: "100%", backgroundColor: "#fff" }}>
         <View style={styles.heading}>
           <View
             style={{
@@ -214,9 +217,9 @@ const Profile = (props) => {
                   onPress={() => setShowMap(true)}
                   style={{ flexDirection: "row" }}
                 >
-                  <Feather name="map-pin" size={24} color="black" />
+                  <Feather name="map-pin" size={24} color="#1877f2" />
                   <Text
-                    style={{ color: "black", fontSize: 20, fontWeight: "bold" }}
+                    style={{ color: "#1877f2", fontSize: 20, fontWeight: "bold" }}
                   >
                     Show Map Location
                   </Text>
@@ -227,9 +230,9 @@ const Profile = (props) => {
                   onPress={() => setShowMap(false)}
                   style={{ flexDirection: "row" }}
                 >
-                  <Feather name="map-pin" size={24} color="black" />
+                  <Feather name="map-pin" size={24} color="#1877f2" />
                   <Text
-                    style={{ color: "black", fontSize: 20, fontWeight: "bold" }}
+                    style={{ color: "#1877f2", fontSize: 20, fontWeight: "bold" }}
                   >
                     Hide Map Location
                   </Text>

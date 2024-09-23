@@ -102,7 +102,7 @@ const AboutUs = (props) => {
       </View>
       <View
         style={{
-          flex: 20, backgroundColor: "#fff"
+          flex: 16, backgroundColor: "#fff"
 
         }}
       >

@@ -38,7 +38,7 @@ const Loader = () => {
   }, []);
 
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "white" }}>
       <AutoKillTweens tweens={tl.current} />
       <View style={{ flexDirection: "row" }}>
         <View ref={(ref) => circles.current.push(ref)} style={styles.circle} />
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   textView: { alignSelf: "center", marginTop: 10 },
-  text: { fontSize: 18, color: "gray" },
+  text: { fontSize: 20, color: "gray" },
 });
 
 export default Loader;

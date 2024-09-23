@@ -10,40 +10,83 @@ import {
 } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from ".././firebase";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Login = (props) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [data, setData] = useState({
+    email: "",
+    password: "",
+  });
   const [showPassword, setShowPassword] = useState(false);
-
+  
   const togglePasswordVisibility = () => {
     setShowPassword((prevShowPassword) => !prevShowPassword);
   };
 
+
+
   const handleLogin = async () => {
     try {
       // Attempt to log in with the provided email and password
-      await signInWithEmailAndPassword(auth, email, password)
-      setEmail('');
-      setPassword('');
+      await signInWithEmailAndPassword(auth, data.email, data.password);
+      await AsyncStorage.setItem("user", JSON.stringify(data))
+      setData({ ...data, email: "" });
+      setData({ ...data, password: "" });
       // Check if the user's email is verified
       const user = auth.currentUser;
       if (!user.emailVerified) {
         // Inform the user to verify their email
-        Alert.alert('Email Not Verified', 'Please verify your email before logging in.');
+        Alert.alert(
+          "Email Not Verified",
+          "Please verify your email before logging in."
+        );
         await auth.signOut(); // Sign out the user if email is not verified
       } else {
         // Navigate to the home screen
-        props.navigation.navigate("Profile")
+        props.navigation.navigate("Profile");
       }
     } catch (error) {
       // Handle login errors
-      Alert.alert('Login Failed', "email or password is invalid");
+      Alert.alert("Login Failed", "email or password is invalid");
     }
-    
   };
-
-  
+  /*const handleLogin = async () => {
+    if (data.email === "" || data.password === "") {
+        setIsFillUpAll(true)
+        setTimeout(() => {
+            setIsFillUpAll(false)
+        }, 5000)
+        return;
+    }
+    try {
+      await signInWithEmailAndPassword(auth, data.email, data.password)
+            .then(async() => {
+                try{
+                    await AsyncStorage.setItem("user", JSON.stringify(data))
+                }catch(err){
+                    console.log('error store in async storage', err.message)
+                }
+            }).catch((err) => {
+                if (err.code === 'auth/invalid-email') {
+                    setIsValidEmail(true);
+                    setTimeout(() => {
+                        setIsValidEmail(false);
+                    }, 5000);
+                } else if (err.code === 'auth/invalid-login-credentials') {
+                    setIsCorrect(true);
+                    setTimeout(() => {
+                        setIsCorrect(false);
+                    }, 5000);
+                } else {
+                    console.log(err.message);
+                }         
+            })
+    } catch (err) {
+        console.log(err.code)
+        console.log(err.message);
+    }
+}
+*/
 
   return (
     <View style={styles.container}>
@@ -54,20 +97,19 @@ const Login = (props) => {
       <TextInput
         style={styles.input}
         placeholder="Email address"
-        onChangeText={(text) => setEmail(text)}
+        onChangeText={(text) => setData({ ...data, email: text })}
         keyboardType="email-address"
         autoCapitalize="none"
-        value={email}
+        value={data.email}
       />
 
       <TextInput
         style={styles.input}
         placeholder="Password"
-        onChangeText={(text) => setPassword(text)}
+        onChangeText={(text) => setData({ ...data, password: text })}
         secureTextEntry={!showPassword}
-        value={password}
+        value={data.password}
       />
-
       <TouchableOpacity
         style={styles.showPasswordButton}
         onPress={togglePasswordVisibility}
@@ -143,11 +185,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   showPasswordButton: {
-    padding: 12,
+    padding: 10,
     backgroundColor: "#e0e0e0",
     borderRadius: 5,
     marginBottom: 10,
-    paddingHorizontal: 168,
+    width: "100%",
+    alignItems: "center",
+    
   },
 });
 
