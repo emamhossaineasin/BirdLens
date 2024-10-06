@@ -5,14 +5,10 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   Image,
   TouchableOpacity,
   TextInput,
-  Button,
-  KeyboardAvoidingView,
 } from "react-native";
-import { FontAwesome } from "@expo/vector-icons";
 import { firebase, db } from ".././firebase";
 import UploadModal from "./UploadModal";
 import * as ImagePicker from "expo-image-picker";

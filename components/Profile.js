@@ -121,7 +121,7 @@ const Profile = (props) => {
             }}
           >
             <FontAwesome6 name="circle-user" size={30} color="black" />
-            <Text style={{ fontSize: 25 }}> Profile</Text>
+            <Text style={{ fontSize: 25 }}> Profile </Text>
           </View>
           <View
             style={{
@@ -203,12 +203,8 @@ const Profile = (props) => {
 
                 <Text style={styles.info}>
                   Address:{" "}
-                  {userData.district
-                    ? userData.upazila +
-                      ", " +
-                      userData.district +
-                      ", " +
-                      userData.division
+                  {userData.address
+                    ? userData.address 
                     : "Not Provided Yet"}
                 </Text>
               </View>

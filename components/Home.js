@@ -174,7 +174,7 @@ const Home = (props) => {
             }}
           >
             <Text style={{ fontSize: 20 }}>
-              Likes : {!item.likeCount ? 0 : item.likeCount}
+              Likes : {!item.likeCount ? 0 : item.likeCount} l
             </Text>
           </View>
           <View

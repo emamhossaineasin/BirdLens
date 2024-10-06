@@ -7,23 +7,57 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
-  Platform,
-  KeyboardAvoidingView,
 } from "react-native";
-import { auth, db, firebase } from ".././firebase";
+import { firebase } from ".././firebase";
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import UploadModal from "./UploadModal";
 import Loader from "./Loader";
-import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { FontAwesome6 } from "@expo/vector-icons";
-import { FontAwesome5 } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { getFormatedDate } from "react-native-modern-datepicker";
 import DateModal from "./DateModal";
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
+import {
+  ApolloClient,
+  InMemoryCache,
+  gql,
+  ApolloProvider,
+} from "@apollo/client";
+
+const client = new ApolloClient({
+  uri: "https://countries.trevorblades.com/",
+  cache: new InMemoryCache(),
+});
+
+const GET_COUNTRIES = gql`
+  query {
+    countries {
+      name
+      subdivisions {
+        name
+      }
+    }
+  }
+`;
+
+const CountryDataFetcher = ({ onDataFetch }) => {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { data } = await client.query({ query: GET_COUNTRIES });
+        onDataFetch(data);
+      } catch (error) {
+        console.error("Error fetching country data:", error);
+      }
+    };
+
+    fetchData();
+  }, [onDataFetch]);
+
+  return null;
+};
 
 const EditProfile = (props) => {
   const [userData, setUserData] = useState(null);
@@ -37,21 +71,27 @@ const EditProfile = (props) => {
   );
   const [selectedStartDate, setSelectedStartDate] = useState("");
   const [startedDate, setStartedDate] = useState(startDate);
+  const [countriesData, setCountriesData] = useState(null);
+  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [selectedSubdivision, setSelectedSubdivision] = useState(null);
+
+  const handleDataFetch = (data) => {
+    setCountriesData(data);
+  };
 
   function handleChangeStartDate(propDate) {
     setStartedDate(propDate);
   }
 
+  const handleCountryChange = (country) => {
+    setSelectedCountry(country);
+    setSelectedSubdivision(null); // Reset selected subdivision when country changes
+  };
+
   const handleOnPressStartDate = () => {
     setOpenStartDatePicker(!openStartDatePicker);
   };
 
-  const [selectedDivision, setSelectedDivision] = useState(null);
-  const [selectedDistrict, setSelectedDistrict] = useState(null);
-  const [selectedUpazila, setSelectedUpazila] = useState(null);
-  const [divisions, setDivisions] = useState([]);
-  const [districts, setDistricts] = useState([]);
-  const [upazilas, setUpazilas] = useState([]);
   const [phoneError, setPhoneError] = useState("");
   const [showMessage, setShowMessage] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -87,62 +127,6 @@ const EditProfile = (props) => {
   }, [userData]);
 
   useEffect(() => {
-    // Fetch divisions
-    const fetchDivisions = async () => {
-      try {
-        const response = require("./../assets/divisions.json");
-        setDivisions(response[2].data);
-      } catch (error) {
-        console.error("Error reading divisions.json:", error);
-      }
-    };
-    fetchDivisions();
-  }, []);
-
-  useEffect(() => {
-    const fetchDistricts = async () => {
-      try {
-        if (selectedDivision) {
-          // Add a check here
-          const response = require("./../assets/districts.json");
-          const selected_division = divisions.filter(
-            (division) => division.name === selectedDivision
-          );
-          // console.log(selected_division)
-          const requiredDistricts = response[2].data.filter(
-            (district) => district.division_id === selected_division[0].id
-          );
-          setDistricts(requiredDistricts);
-        }
-      } catch (err) {
-        console.error("Error reading districts.json:", err);
-      }
-    };
-    fetchDistricts();
-  }, [selectedDivision]);
-
-  useEffect(() => {
-    const fetchUpazilas = async () => {
-      try {
-        if (selectedDistrict) {
-          // Add a check here
-          const response = require("./../assets/upazilas.json");
-          const selected_district = districts.filter(
-            (district) => district.name === selectedDistrict
-          );
-          const requiredUpazilas = response[2].data.filter(
-            (upazila) => upazila.district_id === selected_district[0].id
-          );
-          setUpazilas(requiredUpazilas);
-        }
-      } catch (err) {
-        console.error("Error reading upazilas.json:", err);
-      }
-    };
-    fetchUpazilas();
-  }, [selectedDistrict]);
-
-  useEffect(() => {
     const fetchData = () => {
       try {
         return firebase
@@ -154,9 +138,8 @@ const EditProfile = (props) => {
               if (doc.exists) {
                 const userData = doc.data();
                 setUserData(userData);
-                setSelectedDivision(userData.division);
-                setSelectedDistrict(userData.district);
-                setSelectedUpazila(userData.upazila);
+                setSelectedCountry(userData.country);
+                setSelectedSubdivision(userData.sub_division);
                 userData.latitude
                   ? setInitialLocation({
                       ...initialLocation,
@@ -219,11 +202,9 @@ const EditProfile = (props) => {
           l_name: userData.l_name,
           phone: userData.phone,
           dob: timestamp,
-          division: selectedDivision,
-          district: selectedDistrict,
-          upazila: selectedUpazila,
-          address:
-            selectedDivision + ", " + selectedDistrict + ", " + selectedUpazila,
+          country: selectedCountry,
+          sub_division: selectedSubdivision,
+          address: selectedCountry + ", " + selectedSubdivision,
           latitude: initialLocation.latitude,
           longitude: initialLocation.longitude,
         })
@@ -318,87 +299,83 @@ const EditProfile = (props) => {
   };
 
   return (
-    <View style={styles.container}>
-      {openStartDatePicker ? (
-        <DateModal
-          openStartDatePicker={openStartDatePicker}
-          startDate={startDate}
-          startedDate={startedDate}
-          handleChangeStartDate={handleChangeStartDate}
-          setSelectedStartDate={setSelectedStartDate}
-          handleOnPressStartDate={handleOnPressStartDate}
-        />
-      ) : null}
-      <View
-        style={{
-          padding: 15,
-          marginTop: 30,
-          flex: 1,
-          flexDirection: "row",
-          backgroundColor: "#ddd",
-        }}
-      >
-        <View style={{ flex: 2 }}>
-          <TouchableOpacity onPress={() => props.navigation.navigate("Home")}>
-            <Text style={styles.appName}>BirdLens</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={{ flex: 1, alignItems: "flex-end", marginTop: 15 }}>
-          <TouchableOpacity
-            onPress={() => {
-              props.navigation.navigate("Profile");
-            }}
-          >
-            <Text style={styles.logoutLink}>Profile</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-      <View style={{ flex: 16, width: "100%", backgroundColor: "#eee" }}>
-        <View style={styles.mainContainer}>
-          <View>
-            {modalVisible ? (
-              <UploadModal
-                isModalVisible={modalVisible}
-                setModalVisible={setModalVisible}
-                pickImage={pickImage}
-                takePicture={takePicture}
-              />
-            ) : null}
+    <ApolloProvider client={client}>
+      <CountryDataFetcher onDataFetch={handleDataFetch} />
+      <View style={styles.container}>
+        {openStartDatePicker ? (
+          <DateModal
+            openStartDatePicker={openStartDatePicker}
+            startDate={startDate}
+            startedDate={startedDate}
+            handleChangeStartDate={handleChangeStartDate}
+            setSelectedStartDate={setSelectedStartDate}
+            handleOnPressStartDate={handleOnPressStartDate}
+          />
+        ) : null}
+        <View
+          style={{
+            padding: 15,
+            marginTop: 30,
+            flex: 1,
+            flexDirection: "row",
+            backgroundColor: "#ddd",
+          }}
+        >
+          <View style={{ flex: 2 }}>
+            <TouchableOpacity onPress={() => props.navigation.navigate("Home")}>
+              <Text style={styles.appName}>BirdLens</Text>
+            </TouchableOpacity>
           </View>
-
-          {loading === true ? (
-            <Loader color="black" />
-          ) : userData ? (
-            <ScrollView contentContainerStyle={styles.content}>
-              <View style={styles.profilePic}>
-                <Image
-                  style={styles.image}
-                  source={
-                    userData.image === ""
-                      ? require("./../assets/profile_image.png")
-                      : { uri: userData.image }
-                  }
+          <View style={{ flex: 1, alignItems: "flex-end", marginTop: 15 }}>
+            <TouchableOpacity
+              onPress={() => {
+                props.navigation.navigate("Profile");
+              }}
+            >
+              <Text style={styles.logoutLink}>Profile</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View style={{ flex: 16, width: "100%", backgroundColor: "#eee" }}>
+          <View style={styles.mainContainer}>
+            <View>
+              {modalVisible ? (
+                <UploadModal
+                  isModalVisible={modalVisible}
+                  setModalVisible={setModalVisible}
+                  pickImage={pickImage}
+                  takePicture={takePicture}
                 />
-                <TouchableOpacity style={styles.uploadBtn} onPress={openModal}>
-                  <Text style={{ fontSize: 16 }}>Change Image</Text>
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.subHeading}>Edit Information</Text>
+              ) : null}
+            </View>
 
-              {userData ? (
-                
+            {loading === true ? (
+              <Loader color="black" />
+            ) : userData ? (
+              <ScrollView contentContainerStyle={styles.content}>
+                <View style={styles.profilePic}>
+                  <Image
+                    style={styles.image}
+                    source={
+                      userData.image === ""
+                        ? require("./../assets/profile_image.png")
+                        : { uri: userData.image }
+                    }
+                  />
+                  <TouchableOpacity
+                    style={styles.uploadBtn}
+                    onPress={openModal}
+                  >
+                    <Text style={{ fontSize: 16 }}>Change Image </Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.subHeading}>Edit Information</Text>
+
+                {userData ? (
                   <ScrollView contentContainerStyle={styles.content}>
                     <View style={styles.details}>
                       <View style={styles.inputField}>
-                        <Text
-                          style={{
-                            fontSize: 20,
-                            marginVertical: 5,
-                            fontWeight: "bold",
-                          }}
-                        >
-                          First Name:
-                        </Text>
+                        <Text style={styles.inputFieldText}>First Name:</Text>
                         <TextInput
                           style={styles.input}
                           placeholderTextColor={"dimgray"}
@@ -410,15 +387,7 @@ const EditProfile = (props) => {
                         />
                       </View>
                       <View style={styles.inputField}>
-                        <Text
-                          style={{
-                            fontSize: 20,
-                            marginVertical: 5,
-                            fontWeight: "bold",
-                          }}
-                        >
-                          Last Name:
-                        </Text>
+                        <Text style={styles.inputFieldText}>Last Name:</Text>
                         <TextInput
                           style={styles.input}
                           placeholderTextColor={"dimgray"}
@@ -431,15 +400,7 @@ const EditProfile = (props) => {
                       </View>
 
                       <View style={styles.inputField}>
-                        <Text
-                          style={{
-                            fontSize: 20,
-                            marginVertical: 5,
-                            fontWeight: "bold",
-                          }}
-                        >
-                          Phone:
-                        </Text>
+                        <Text style={styles.inputFieldText}>Phone:</Text>
                         <TextInput
                           style={styles.input}
                           placeholderTextColor={"dimgray"}
@@ -475,89 +436,49 @@ const EditProfile = (props) => {
                         </TouchableOpacity>
                       </View>
                       <View>
-                        {/* Division Dropdown */}
-                        <Text
-                          style={{
-                            fontSize: 20,
-                            marginVertical: 5,
-                            fontWeight: "bold",
-                          }}
-                        >
-                          Select Division:
+                        <Text style={{ fontSize: 20, marginVertical: 5, fontWeight: "bold", }}>
+                          Country:
                         </Text>
                         <Picker
-                          selectedValue={selectedDivision}
+                          selectedValue={selectedCountry}
                           onValueChange={(itemValue) =>
-                            setSelectedDivision(itemValue)
+                            handleCountryChange(itemValue)
                           }
                           style={styles.pickerStyle}
                         >
-                          {[{ name: "Select Division" }, ...divisions].map(
-                            (division, index) => (
+                          {countriesData &&
+                            countriesData.countries.map((country, index) => (
                               <Picker.Item
                                 key={index}
-                                label={division.name}
-                                value={division.name}
-                                enabled={index !== 0}
+                                label={country.name}
+                                value={country.name}
                               />
-                            )
-                          )}
+                            ))}
                         </Picker>
-
-                        <Text
-                          style={{
-                            fontSize: 20,
-                            marginVertical: 5,
-                            fontWeight: "bold",
-                          }}
-                        >
-                          Select District:
+                        <Text style={{ fontSize: 20, marginVertical: 5, fontWeight: "bold", }}>
+                          Subdivision:
                         </Text>
                         <Picker
-                          selectedValue={selectedDistrict}
+                          selectedValue={selectedSubdivision}
                           onValueChange={(itemValue) =>
-                            setSelectedDistrict(itemValue)
+                            setSelectedSubdivision(itemValue)
                           }
                           style={styles.pickerStyle}
+                          enabled={selectedCountry !== null}
                         >
-                          {[{ name: "Select District" }, ...districts].map(
-                            (district, index) => (
-                              <Picker.Item
-                                key={index}
-                                label={district.name}
-                                value={district.name}
-                                enabled={index !== 0}
-                              />
-                            )
-                          )}
-                        </Picker>
-
-                        <Text
-                          style={{
-                            fontSize: 20,
-                            marginVertical: 5,
-                            fontWeight: "bold",
-                          }}
-                        >
-                          Select Upazila:
-                        </Text>
-                        <Picker
-                          selectedValue={selectedUpazila}
-                          onValueChange={(itemValue) =>
-                            setSelectedUpazila(itemValue)
-                          }
-                          style={styles.pickerStyle}
-                        >
-                          {[{ name: "Select Upazila" }, ...upazilas].map(
-                            (upazila, index) => (
-                              <Picker.Item
-                                key={index}
-                                label={upazila.name}
-                                value={upazila.name}
-                                enabled={index !== 0}
-                              />
-                            )
-                          )}
+                          {selectedCountry &&
+                            countriesData &&
+                            countriesData.countries
+                              .find(
+                                (country) => country.name === selectedCountry
+                              )
+                              ?.subdivisions.map((subdivision, index) => (
+                                <Picker.Item
+                                  key={index}
+                                  label={subdivision.name}
+                                  value={subdivision.name}
+                                />
+                              ))}
                         </Picker>
                       </View>
                       <View style={{ marginTop: 50 }}>
@@ -568,7 +489,7 @@ const EditProfile = (props) => {
                           style={styles.locationBtn}
                         >
                           <Text style={{ fontSize: 15, color: "black" }}>
-                            Get Your Current Location
+                            Get your current location l
                           </Text>
                         </TouchableOpacity>
 
@@ -596,7 +517,7 @@ const EditProfile = (props) => {
                         {showMessage ? (
                           <View style={styles.successMessage}>
                             <Text style={{ fontSize: 16 }}>
-                              Information Updated Successfully
+                              Information Updated Successfully k
                             </Text>
                           </View>
                         ) : (
@@ -610,19 +531,19 @@ const EditProfile = (props) => {
                       </View>
                     </View>
                   </ScrollView>
-                
-              ) : (
-                <Loader color="black" />
-              )}
-            </ScrollView>
-          ) : (
-            <Text style={{ justifyContent: "center", alignItems: "center" }}>
-              No user data available
-            </Text>
-          )}
+                ) : (
+                  <Loader color="black" />
+                )}
+              </ScrollView>
+            ) : (
+              <Text style={{ justifyContent: "center", alignItems: "center" }}>
+                No user data available
+              </Text>
+            )}
+          </View>
         </View>
       </View>
-    </View>
+    </ApolloProvider>
   );
 };
 
@@ -699,6 +620,11 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "column",
     // width : '100%'
+  },
+  inputFieldText: {
+    fontSize: 20,
+    marginVertical: 5,
+    fontWeight: "bold",
   },
   input: {
     // width: '95%',

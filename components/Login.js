@@ -50,43 +50,6 @@ const Login = (props) => {
       Alert.alert("Login Failed", "email or password is invalid");
     }
   };
-  /*const handleLogin = async () => {
-    if (data.email === "" || data.password === "") {
-        setIsFillUpAll(true)
-        setTimeout(() => {
-            setIsFillUpAll(false)
-        }, 5000)
-        return;
-    }
-    try {
-      await signInWithEmailAndPassword(auth, data.email, data.password)
-            .then(async() => {
-                try{
-                    await AsyncStorage.setItem("user", JSON.stringify(data))
-                }catch(err){
-                    console.log('error store in async storage', err.message)
-                }
-            }).catch((err) => {
-                if (err.code === 'auth/invalid-email') {
-                    setIsValidEmail(true);
-                    setTimeout(() => {
-                        setIsValidEmail(false);
-                    }, 5000);
-                } else if (err.code === 'auth/invalid-login-credentials') {
-                    setIsCorrect(true);
-                    setTimeout(() => {
-                        setIsCorrect(false);
-                    }, 5000);
-                } else {
-                    console.log(err.message);
-                }         
-            })
-    } catch (err) {
-        console.log(err.code)
-        console.log(err.message);
-    }
-}
-*/
 
   return (
     <View style={styles.container}>
@@ -114,7 +77,7 @@ const Login = (props) => {
         style={styles.showPasswordButton}
         onPress={togglePasswordVisibility}
       >
-        <Text>{showPassword ? "Hide" : "Show"}</Text>
+        <Text>{showPassword ? "Hide password " : "Show password"}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
