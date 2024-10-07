@@ -46,7 +46,7 @@ const Loader = () => {
         <View ref={(ref) => circles.current.push(ref)} style={styles.circle} />
       </View>
       <View style={styles.textView}>
-        <Text style={styles.text}>Loading...</Text>
+        <Text style={styles.text}>Loading... </Text>
       </View>
     </View>
   );

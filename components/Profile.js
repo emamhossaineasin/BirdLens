@@ -203,8 +203,8 @@ const Profile = (props) => {
 
                 <Text style={styles.info}>
                   Address:{" "}
-                  {userData.address
-                    ? userData.address 
+                  {userData.country
+                    ? userData.country + ", " + userData.sub_division
                     : "Not Provided Yet"}
                 </Text>
               </View>

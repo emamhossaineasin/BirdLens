@@ -204,7 +204,6 @@ const EditProfile = (props) => {
           dob: timestamp,
           country: selectedCountry,
           sub_division: selectedSubdivision,
-          address: selectedCountry + ", " + selectedSubdivision,
           latitude: initialLocation.latitude,
           longitude: initialLocation.longitude,
         })

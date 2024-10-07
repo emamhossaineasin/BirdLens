@@ -9,14 +9,15 @@ import {
   FlatList,
   Button,
   TouchableOpacity,
+  ScrollView,
+  Dimensions,
 } from "react-native";
 import { firebase } from ".././firebase";
 import YoutubePlayer from "react-native-youtube-iframe";
 import { Rating } from "react-native-ratings";
-
+import { ProgressChart } from "react-native-chart-kit";
 
 const AboutUs = (props) => {
- 
   const [rating, setRating] = useState(0);
   const [averageRating, setAverageRating] = useState(0);
   const userId = firebase.auth().currentUser.uid;
@@ -52,7 +53,7 @@ const AboutUs = (props) => {
         setRating(userDoc.data().rating);
       }
     } catch (error) {
-      console.error('Error fetching previous rating:', error);
+      console.error("Error fetching previous rating:", error);
     }
   };
 
@@ -74,6 +75,34 @@ const AboutUs = (props) => {
     } catch (error) {
       console.error("Error saving rating:", error);
     }
+  };
+
+  const data = {
+    labels: ["rating"], // optional
+    data: [averageRating/5],
+  };
+
+  const remark = [
+    "Unsatisfactory",
+    "Poor",
+    "Weak",
+    "Below Average",
+    "Average",
+    "Fair",
+    "Good",
+    "Very Good",
+    "Excellent",
+    "Outstanding",
+  ];
+
+  const chartConfig = {
+    backgroundGradientFrom: "#696969",
+    backgroundGradientFromOpacity: 0,
+    backgroundGradientTo: "#808080",
+    backgroundGradientToOpacity: 0.5,
+    color: (opacity = 1) => `rgba(30,144,255, ${opacity})`,
+    barPercentage: 0.5,
+    useShadowColorFromDataset: false, // optional
   };
 
   return (
@@ -102,38 +131,55 @@ const AboutUs = (props) => {
       </View>
       <View
         style={{
-          flex: 16, backgroundColor: "#fff"
-
+          flex: 16,
+          backgroundColor: "#fff",
         }}
       >
-        <View style={{ flex: 1 }}>
-          <YoutubePlayer
-            height={300}
-            videoId="G-rsmbK7gdY"
-            play={false}
-            fullscreen={true}
-            loop={false}
-            style={{ alignSelf: "stretch", height: 300 }}
-          />
-        </View>
-        <View style={styles.ratingContainer}>
-          <Text style={{fontSize: 25}}>Rate this App:</Text>
-          <Rating
-            type="star"
-            ratingCount={5}
-            imageSize={40}
-            startingValue={rating}
-            onFinishRating={handleRating}
-            
-          />
-          <TouchableOpacity
-                onPress={handleSaveRating}
-                style={styles.rattingButton}
-              >
-                <Text style={styles.buttonText}>Submit</Text>
-              </TouchableOpacity>
-          <Text style={{fontSize: 25}}>Average Rating: {averageRating.toFixed(2)}</Text>
-        </View>
+        <ScrollView>
+          <View style={{ flex: 1 }}>
+            <YoutubePlayer
+              height={300}
+              videoId="G-rsmbK7gdY"
+              play={false}
+              fullscreen={true}
+              loop={false}
+              style={{ alignSelf: "stretch", height: 300 }}
+            />
+          </View>
+          <View style={styles.ratingContainer}>
+            <Text style={{ fontSize: 25 }}>Rate this App: </Text>
+            <Rating
+              type="star"
+              ratingCount={5}
+              imageSize={40}
+              startingValue={rating}
+              onFinishRating={handleRating}
+            />
+            <TouchableOpacity
+              onPress={handleSaveRating}
+              style={styles.rattingButton}
+            >
+              <Text style={styles.buttonText}>Submit</Text>
+            </TouchableOpacity>
+            <Text style={{ fontSize: 25 }}>
+              Average Rating: {averageRating.toFixed(2)} r
+            </Text>
+          </View>
+          <View style={styles.ratingContainer}>
+            <View style={styles.pChart}>
+              <ProgressChart
+                data={data}
+                width={Dimensions.get("window").width - 20}
+                height={220}
+                strokeWidth={30}
+                radius={80}
+                chartConfig={chartConfig}
+                hideLegend={true}
+              />
+              <Text style={styles.myText}>{data.data[0].toFixed(4) * 100 + "%"} </Text>
+            </View>
+          </View>
+        </ScrollView>
       </View>
     </View>
   );
@@ -159,8 +205,8 @@ const styles = StyleSheet.create({
   },
   ratingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    //justifyContent: "top",
+    alignItems: "center",
   },
   rattingButton: {
     backgroundColor: "#1877f2", // Facebook blue color
@@ -175,7 +221,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 20,
   },
-  
+  pChart:{
+    marginTop : 20,
+    justifyContent : 'center',
+    alignItems : 'center'
+  },
 });
 
 export default AboutUs;
