@@ -111,6 +111,7 @@ const Profile = (props) => {
         </View>
       </View>
       <View style={{ flex: 16, width: "100%", backgroundColor: "#fff" }}>
+        <ScrollView>
         <View style={styles.heading}>
           <View
             style={{
@@ -270,6 +271,7 @@ const Profile = (props) => {
             </Text>
           )}
         </View>
+        </ScrollView>
       </View>
     </View>
   );

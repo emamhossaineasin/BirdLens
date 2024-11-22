@@ -1,13 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { auth } from "./../firebase";
 import "firebase/auth";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
-  Button,
   TouchableOpacity,
   ScrollView,
   Dimensions,
@@ -176,7 +172,7 @@ const AboutUs = (props) => {
                 chartConfig={chartConfig}
                 hideLegend={true}
               />
-              <Text style={styles.myText}>{data.data[0].toFixed(4) * 100 + "%"} </Text>
+              <Text style={styles.myText}>{data.data[0].toFixed(4) * 100 + "%"} Positive rating  </Text>
             </View>
           </View>
         </ScrollView>

@@ -299,7 +299,7 @@ const Home = (props) => {
               pageSize={5}
               currentPage={page}
               onPageChange={setPage}
-              btnStyle={{ backgroundColor: "black", borderRadius: 10 }}
+              btnStyle={{ backgroundColor: "#053363", borderRadius: 10 }}
               activeBtnStyle={{ backgroundColor: "dimgray" }}
             />
           </View>
