@@ -2,6 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSCameraUsageDescription</key>
+	<string>BirdLens uses the camera to photograph birds and profile images.</string>
+
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>BirdLens uses your photo library to select bird and profile images.</string>
+
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>BirdLens uses your location to save your observation location.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
