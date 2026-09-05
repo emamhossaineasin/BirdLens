@@ -1,8 +1,12 @@
-// src/types/navigation.ts
 
-import type {NativeStackScreenProps} from '@react-navigation/native-stack';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { CompositeScreenProps } from '@react-navigation/native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import type {RootStackParamList} from '../navigation/types';
+import type {
+  BottomTabParamList,
+  RootStackParamList,
+} from '../navigation/types';
 
 export type LoginScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -14,14 +18,14 @@ export type SignupScreenProps = NativeStackScreenProps<
   'Signup'
 >;
 
-export type HomeScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'Home'
+export type HomeScreenProps = CompositeScreenProps<
+  BottomTabScreenProps<BottomTabParamList, 'Home'>,
+  NativeStackScreenProps<RootStackParamList, 'MainTabs'>
 >;
 
-export type ProfileScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'Profile'
+export type ProfileScreenProps = CompositeScreenProps<
+  BottomTabScreenProps<BottomTabParamList, 'Profile'>,
+  NativeStackScreenProps<RootStackParamList, 'MainTabs'>
 >;
 
 export type CreatePostScreenProps = NativeStackScreenProps<
@@ -34,12 +38,12 @@ export type EditProfileScreenProps = NativeStackScreenProps<
   'EditProfile'
 >;
 
-export type SearchScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'Search'
+export type SearchScreenProps = CompositeScreenProps<
+  BottomTabScreenProps<BottomTabParamList, 'Search'>,
+  NativeStackScreenProps<RootStackParamList, 'MainTabs'>
 >;
 
-export type AboutUsScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'AboutUs'
+export type AboutUsScreenProps = CompositeScreenProps<
+  BottomTabScreenProps<BottomTabParamList, 'AboutUs'>,
+  NativeStackScreenProps<RootStackParamList, 'MainTabs'>
 >;

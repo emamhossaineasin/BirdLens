@@ -2,33 +2,93 @@ import 'react-native-gesture-handler';
 
 import '@react-native-firebase/app';
 import {
-    getAuth,
-    onAuthStateChanged,
-    type User,
+  getAuth,
+  onAuthStateChanged,
+  type User,
 } from '@react-native-firebase/auth';
+import { Ionicons } from '@react-native-vector-icons/ionicons';
 import {
-    NavigationContainer
+  createBottomTabNavigator,
+  type BottomTabScreenProps,
+} from '@react-navigation/bottom-tabs';
+import {
+  NavigationContainer
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import type { RootStackParamList } from './navigation/types';
+import type {
+  BottomTabParamList,
+  RootStackParamList,
+} from './navigation/types';
 // Screens are required dynamically below to avoid importing modules
 // that access Firebase before the native Firebase app is initialized.
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator<BottomTabParamList>();
+
+type ScreenComponent = React.ComponentType<Record<string, unknown>>;
+
+function getTabScreenOptions({
+  route,
+}: BottomTabScreenProps<BottomTabParamList>): object {
+  return {
+    headerShown: false,
+    tabBarActiveTintColor: '#1f6b4f',
+    tabBarInactiveTintColor: '#8b968f',
+    tabBarLabelStyle: styles.tabLabel,
+    tabBarStyle: styles.tabBar,
+    tabBarIcon: ({ color, size, focused }: {
+      color: string;
+      size: number;
+      focused: boolean;
+    }) => {
+      const icons = {
+        Home: focused ? 'home' : 'home-outline',
+        Search: focused ? 'search' : 'search-outline',
+        Profile: focused ? 'person' : 'person-outline',
+        AboutUs: focused ? 'information-circle' : 'information-circle-outline',
+      } as const;
+
+      return (
+        <Ionicons
+          name={icons[route.name]}
+          color={color}
+          size={size}
+        />
+      );
+    },
+  };
+}
+
+function MainTabs({
+  Home,
+  Search,
+  Profile,
+  AboutUs,
+}: {
+  Home: ScreenComponent;
+  Search: ScreenComponent;
+  Profile: ScreenComponent;
+  AboutUs: ScreenComponent;
+}): React.JSX.Element {
+  return (
+    <Tab.Navigator
+      screenOptions={getTabScreenOptions}>
+      <Tab.Screen name="Home" component={Home} />
+      <Tab.Screen name="Search" component={Search} />
+      <Tab.Screen name="Profile" component={Profile} />
+      <Tab.Screen name="AboutUs" component={AboutUs} />
+    </Tab.Navigator>
+  );
+}
 
 export default function App(): React.JSX.Element {
   const [user, setUser] = useState<User | null>(null);
   const [initializing, setInitializing] = useState(true);
-
-  // Ensure the native Firebase app is initialized synchronously so
-  // modules that `require` Firebase (e.g. services/firebase) do not
-  // attempt to access an uninitialized default app during import.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _ensureAuthInit = getAuth();
+  getAuth();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(getAuth(), nextUser => {
@@ -55,24 +115,13 @@ export default function App(): React.JSX.Element {
     );
   }
 
-  // Require screens lazily now that Firebase native modules are ready.
-  // This prevents screen modules from importing `services/firebase`
-  // before the native Firebase app has been initialized.
-  // eslint-disable-next-line global-require
   const Home = require('./screens/Home').default;
-  // eslint-disable-next-line global-require
   const Profile = require('./screens/Profile').default;
-  // eslint-disable-next-line global-require
   const CreatePost = require('./screens/CreatePost').default;
-  // eslint-disable-next-line global-require
   const EditProfile = require('./screens/EditProfile').default;
-  // eslint-disable-next-line global-require
   const Search = require('./screens/Search').default;
-  // eslint-disable-next-line global-require
   const AboutUs = require('./screens/AboutUs').default;
-  // eslint-disable-next-line global-require
   const Login = require('./screens/Login').default;
-  // eslint-disable-next-line global-require
   const Signup = require('./screens/Signup').default;
 
   return (
@@ -83,13 +132,19 @@ export default function App(): React.JSX.Element {
         >
           {user ? (
             <>
-              <Stack.Screen name="Home" component={Home} />
-              <Stack.Screen name="Profile" component={Profile} />
+              <Stack.Screen
+                name="MainTabs"
+                children={() => (
+                  <MainTabs
+                    Home={Home as unknown as ScreenComponent}
+                    Search={Search as unknown as ScreenComponent}
+                    Profile={Profile as unknown as ScreenComponent}
+                    AboutUs={AboutUs as unknown as ScreenComponent}
+                  />
+                )}
+              />
               <Stack.Screen name="CreatePost" component={CreatePost} />
               <Stack.Screen name="EditProfile" component={EditProfile} />
-              <Stack.Screen name="Search" component={Search} />
-              {/* @ts-ignore */}
-              <Stack.Screen name="AboutUs" component={AboutUs} />
             </>
           ) : (
             <>
@@ -114,5 +169,18 @@ const styles = StyleSheet.create({
     color: '#1f2937',
     fontSize: 16,
     marginTop: 12,
+  },
+  tabBar: {
+    backgroundColor: '#fffdf8',
+    borderTopColor: '#e7eee8',
+    borderTopWidth: 1,
+    elevation: 10,
+    height: 68,
+    paddingBottom: 8,
+    paddingTop: 7,
+  },
+  tabLabel: {
+    fontSize: 12,
+    fontWeight: '700',
   },
 });

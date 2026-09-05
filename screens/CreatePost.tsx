@@ -1,22 +1,22 @@
 import { getAuth } from '@react-native-firebase/auth';
 import {
-    addDoc,
-    collection,
-    doc,
-    onSnapshot,
-    serverTimestamp,
-    updateDoc,
+  addDoc,
+  collection,
+  doc,
+  onSnapshot,
+  serverTimestamp,
+  updateDoc,
 } from '@react-native-firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 import Loader from '../components/Loader';
@@ -26,8 +26,9 @@ import type { UserProfile } from '../types/models';
 import type { CreatePostScreenProps } from '../types/navigation';
 import { uploadImageToCloudinary } from '../utils/cloudinary';
 import {
-    captureImage,
-    selectImageFromLibrary,
+  captureImage,
+  selectImageFromLibrary,
+  type PickedImage,
 } from '../utils/imagePicker';
 
 export default function CreatePost({
@@ -36,7 +37,7 @@ export default function CreatePost({
   const [userData, setUserData] = useState<UserProfile | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [postContent, setPostContent] = useState('');
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<PickedImage | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -99,8 +100,8 @@ export default function CreatePost({
     }
   };
 
-  const uploadImage = async (uri: string): Promise<string> => {
-    return uploadImageToCloudinary(uri, `post-${Date.now()}.jpg`);
+  const uploadImage = async (image: PickedImage): Promise<string> => {
+    return uploadImageToCloudinary(image.uri, `post-${Date.now()}.jpg`);
   };
 
   const handleCreatePost = async (): Promise<void> => {
@@ -150,7 +151,7 @@ export default function CreatePost({
       setPostContent('');
       setSelectedImage(null);
 
-      navigation.navigate('Profile');
+      navigation.navigate('MainTabs', {screen: 'Profile'});
     } catch (error: unknown) {
       console.error('Post creation failed:', error);
       Alert.alert('Post failed', 'Your post could not be created.');
@@ -166,11 +167,11 @@ export default function CreatePost({
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+        <TouchableOpacity onPress={() => navigation.navigate('MainTabs', {screen: 'Home'})}>
           <Text style={styles.appName}>BirdLens</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+        <TouchableOpacity onPress={() => navigation.navigate('MainTabs', {screen: 'Profile'})}>
           <Text style={styles.profileLink}>Profile</Text>
         </TouchableOpacity>
       </View>
@@ -189,7 +190,7 @@ export default function CreatePost({
 
         {selectedImage ? (
           <Image
-            source={{uri: selectedImage}}
+            source={{uri: selectedImage.uri}}
             style={styles.selectedImage}
             resizeMode="contain"
           />
@@ -232,18 +233,17 @@ const styles = StyleSheet.create({
   screen: {
     backgroundColor: '#eee',
     flex: 1,
-    marginTop: 50,
+    paddingTop: 50,
   },
   header: {
     alignItems: 'center',
-    backgroundColor: '#ddd',
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 15,
   },
   appName: {
     color: 'black',
-    fontSize: 40,
+    fontSize: 30,
     fontWeight: 'bold',
   },
   profileLink: {

@@ -1,12 +1,3 @@
-import React, {useState} from 'react';
-import {
-  Alert,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
 import {
   createUserWithEmailAndPassword,
   getAuth,
@@ -19,8 +10,17 @@ import {
   serverTimestamp,
   setDoc,
 } from '@react-native-firebase/firestore';
+import React, { useState } from 'react';
+import {
+  Alert,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
-import type {SignupScreenProps} from '../types/navigation';
+import type { SignupScreenProps } from '../types/navigation';
 
 type SignupForm = {
   firstName: string;
@@ -113,8 +113,12 @@ export default function Signup({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.appName}>BirdLens</Text>
-      <Text style={styles.title}>Create an Account</Text>
+      <View style={styles.brandMark}>
+        <Text style={styles.brandMarkText}>B</Text>
+      </View>
+      <Text style={styles.appName}>Join BirdLens</Text>
+      <Text style={styles.subtitle}>Build your field guide, one bird at a time.</Text>
+      <Text style={styles.title}>Create your account</Text>
 
       <TextInput
         style={styles.input}
@@ -192,45 +196,66 @@ export default function Signup({
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    backgroundColor: '#eee',
+    backgroundColor: '#9BADED',
     flex: 1,
     justifyContent: 'center',
     padding: 20,
   },
   appName: {
-    color: '#1877f2',
-    fontSize: 40,
+    color: '#fffdf8',
+    fontSize: 34,
     fontWeight: 'bold',
-    marginBottom: 30,
+    marginBottom: 4,
+  },
+  brandMark: {
+    alignItems: 'center',
+    backgroundColor: '#ed8b5b',
+    borderRadius: 19,
+    height: 56,
+    justifyContent: 'center',
+    marginBottom: 10,
+    width: 56,
+  },
+  brandMarkText: {
+    color: '#12372a',
+    fontSize: 34,
+    fontWeight: '900',
+  },
+  subtitle: {
+    color: '#bdd4c4',
+    fontSize: 14,
+    marginBottom: 25,
   },
   title: {
-    color: '#1877f2',
-    fontSize: 24,
+    alignSelf: 'flex-start',
+    color: '#fffdf8',
+    fontSize: 25,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   input: {
-    borderColor: 'gray',
-    borderRadius: 5,
-    borderWidth: 1,
-    height: 44,
+    backgroundColor: '#fffdf8',
+    borderRadius: 12,
+    color: '#19352b',
+    height: 48,
     marginBottom: 10,
-    paddingHorizontal: 10,
+    paddingHorizontal: 16,
     width: '100%',
   },
   showPasswordButton: {
     alignItems: 'center',
-    backgroundColor: '#e0e0e0',
-    borderRadius: 5,
+    backgroundColor: '#dce9df',
+    borderRadius: 12,
     marginBottom: 10,
     padding: 12,
     width: '100%',
   },
   signupButton: {
     alignItems: 'center',
-    backgroundColor: '#1877f2',
-    borderRadius: 5,
-    padding: 12,
+    backgroundColor: '#ed8b5b',
+    borderRadius: 12,
+    marginTop: 6,
+    padding: 15,
     width: '100%',
   },
   buttonText: {
@@ -242,12 +267,12 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   loginText: {
-    color: 'black',
-    fontSize: 18,
+    color: '#bdd4c4',
+    fontSize: 15,
   },
   loginLink: {
-    color: '#1877f2',
-    fontSize: 18,
+    color: '#f4ad80',
+    fontSize: 15,
     fontWeight: 'bold',
   },
 });

@@ -210,13 +210,8 @@ export default function AboutUs({
     <View style={styles.screen}>
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => navigation.navigate('Home')}>
+          onPress={() => navigation.navigate('MainTabs', {screen: 'Home'})}>
           <Text style={styles.appName}>BirdLens</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => navigation.navigate('Profile')}>
-          <Text style={styles.profileLink}>Profile</Text>
         </TouchableOpacity>
       </View>
 
@@ -314,18 +309,17 @@ const styles = StyleSheet.create({
   screen: {
     backgroundColor: '#eee',
     flex: 1,
-    marginTop: 50,
+    paddingTop: 50,
   },
   header: {
     alignItems: 'center',
-    backgroundColor: '#ddd',
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 10,
   },
   appName: {
     color: 'black',
-    fontSize: 40,
+    fontSize: 30,
     fontWeight: 'bold',
   },
   profileLink: {

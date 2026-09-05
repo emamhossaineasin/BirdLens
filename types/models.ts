@@ -15,6 +15,12 @@ export type UserProfile = {
   image: string;
   dob: FirestoreTimestamp | null;
   country: string | null;
+  division?: string | null;
+  division_id?: string | null;
+  district?: string | null;
+  district_id?: string | null;
+  upazila?: string | null;
+  upazila_id?: string | null;
   sub_division: string | null;
   latitude: number | null;
   longitude: number | null;

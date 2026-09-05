@@ -14,9 +14,7 @@ import {
   serverTimestamp,
   updateDoc,
 } from '@react-native-firebase/firestore';
-import { Feather } from '@react-native-vector-icons/feather';
 import { FontAwesome5 } from '@react-native-vector-icons/fontawesome5';
-import { Ionicons } from '@react-native-vector-icons/ionicons';
 import React, {
   useEffect,
   useMemo,
@@ -661,50 +659,6 @@ export default function Home({
             BirdLens
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel="Open Profile"
-          onPress={() =>
-            navigation.navigate('Profile')
-          }>
-          <Text style={styles.profileLink}>
-            Profile
-          </Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.menuRow}>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel="Search for birds"
-          style={styles.menuButton}
-          onPress={() =>
-            navigation.navigate('Search')
-          }>
-          <Ionicons
-            name="search-circle-outline"
-            size={38}
-            color="#000000"
-          />
-          <Text style={styles.menuText}>
-            Search
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel="Open About Us"
-          style={styles.menuButton}
-          onPress={() =>
-            navigation.navigate('AboutUs')
-          }>
-          <Feather
-            name="info"
-            size={30}
-            color="#000000"
-          />
-          <Text style={styles.menuText}>
-            About us
-          </Text>
-        </TouchableOpacity>
       </View>
       <View style={styles.feedContainer}>
         {loading ? (
@@ -767,21 +721,21 @@ export default function Home({
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#eeeeee',
-    marginTop: 50,
+    backgroundColor: '#ffffff',
+    //marginTop: 50,
+    paddingTop: 50,
   },
   header: {
     minHeight: 60,
     paddingHorizontal: 15,
     paddingVertical: 10,
-    backgroundColor: '#dddddd',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   appName: {
     color: '#000000',
-    fontSize: 40,
+    fontSize: 30,
     fontWeight: 'bold',
   },
   profileLink: {

@@ -149,10 +149,6 @@ export default function Search({
         <TouchableOpacity onPress={() => navigation.navigate('Home')}>
           <Text style={styles.appName}>BirdLens</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-          <Text style={styles.profileLink}>Profile</Text>
-        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -215,21 +211,20 @@ export default function Search({
 
 const styles = StyleSheet.create({
   screen: {
-    backgroundColor: '#eee',
+    backgroundColor: '#ffffff',
     //backgroundColor: 'blue',
     flex: 1,
-    marginTop: 50,
+    paddingTop: 50,
   },
   header: {
     alignItems: 'center',
-    backgroundColor: '#ddd',
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 10,
   },
   appName: {
     color: 'black',
-    fontSize: 40,
+    fontSize: 30,
     fontWeight: 'bold',
   },
   profileLink: {
@@ -264,6 +259,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     height: 300,
     justifyContent: 'center',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    marginBottom: 10,
   },
   emptyImageText: {
     color: 'gray',

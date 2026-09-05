@@ -9,7 +9,6 @@ import {
   updateDoc,
 } from '@react-native-firebase/firestore';
 import { Picker } from '@react-native-picker/picker';
-import axios from 'axios';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
@@ -27,10 +26,7 @@ import DateModal from '../components/DateModal';
 import Loader from '../components/Loader';
 import UploadModal from '../components/UploadModal';
 import { db } from '../services/firebase';
-import type {
-  CountriesQueryData,
-  UserProfile,
-} from '../types/models';
+import type { UserProfile } from '../types/models';
 import type { EditProfileScreenProps } from '../types/navigation';
 import { uploadImageToCloudinary } from '../utils/cloudinary';
 import { formatDateInput } from '../utils/date';
@@ -45,6 +41,39 @@ type EditableProfile = {
   l_name: string;
   phone: string;
 };
+
+type Division = {
+  id: string;
+  name: string;
+};
+
+type District = {
+  id: string;
+  division_id: string;
+  name: string;
+};
+
+type Upazila = {
+  id: string;
+  district_id: string;
+  name: string;
+};
+
+type JsonTable<T> = {
+  type: string;
+  name: string;
+  data: T[];
+};
+
+const divisions = (
+  require('../assets/divisions.json') as JsonTable<Division>[]
+)[2].data;
+const districts = (
+  require('../assets/districts.json') as JsonTable<District>[]
+)[2].data;
+const upazilas = (
+  require('../assets/upazilas.json') as JsonTable<Upazila>[]
+)[2].data;
 
 type EditProfileContentProps = EditProfileScreenProps;
 
@@ -92,16 +121,15 @@ function EditProfileContent({
   const [dateOfBirth, setDateOfBirth] = useState(new Date());
   const [hasDateOfBirth, setHasDateOfBirth] = useState(false);
   const [datePickerVisible, setDatePickerVisible] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
-  const [selectedSubdivision, setSelectedSubdivision] = useState<string | null>(null);
+  const [selectedDivision, setSelectedDivision] = useState<string | null>(null);
+  const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
+  const [selectedUpazila, setSelectedUpazila] = useState<string | null>(null);
   const [latitude, setLatitude] = useState(23.8103);
   const [longitude, setLongitude] = useState(90.4125);
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [data, setData] = useState<CountriesQueryData | null>(null);
-  const [loadingCountries, setLoadingCountries] = useState(true);
 
   useEffect(() => {
     let unsubscribeProfile: (() => void) | null = null;
@@ -135,8 +163,21 @@ function EditProfileContent({
             });
 
             setProfileImage(userData.image ?? '');
-            setSelectedCountry(userData.country ?? null);
-            setSelectedSubdivision(userData.sub_division ?? null);
+            setSelectedDivision(
+              userData.division_id ??
+                divisions.find(item => item.name === userData.division)?.id ??
+                null,
+            );
+            setSelectedDistrict(
+              userData.district_id ??
+                districts.find(item => item.name === userData.district)?.id ??
+                null,
+            );
+            setSelectedUpazila(
+              userData.upazila_id ??
+                upazilas.find(item => item.name === userData.upazila)?.id ??
+                null,
+            );
             setHasDateOfBirth(Boolean(userData.dob));
 
             const nextLatitude = getCoordinate(userData.latitude, 23.8103);
@@ -168,38 +209,23 @@ function EditProfileContent({
     };
   }, []);
 
-  useEffect(() => {
-    const fetchCountries = async () => {
-      try {
-        const response = await axios.post('https://countries.trevorblades.com/', {
-          query: `
-            query Countries {
-              countries {
-                name
-                subdivisions {
-                  name
-                }
-              }
-            }
-          `,
-        });
-        setData(response.data.data);
-      } catch (error) {
-        console.error('Failed to fetch countries:', error);
-      } finally {
-        setLoadingCountries(false);
-      }
-    };
+  const selectedDivisionData = useMemo(
+    () => divisions.find(division => division.id === selectedDivision),
+    [selectedDivision],
+  );
 
-    fetchCountries();
-  }, []);
-
-  const selectedCountryData = useMemo(
+  const availableDistricts = useMemo(
     () =>
-      data?.countries.find(
-        (country: any) => country.name === selectedCountry,
+      districts.filter(
+        district => district.division_id === selectedDivision,
       ),
-    [data?.countries, selectedCountry],
+    [selectedDivision],
+  );
+
+  const availableUpazilas = useMemo(
+    () =>
+      upazilas.filter(upazila => upazila.district_id === selectedDistrict),
+    [selectedDistrict],
   );
 
   const phoneError = useMemo(() => {
@@ -285,6 +311,9 @@ function EditProfileContent({
 
   const handleSubmit = async (): Promise<void> => {
     const user = getAuth().currentUser;
+    const division = divisions.find(item => item.id === selectedDivision);
+    const district = districts.find(item => item.id === selectedDistrict);
+    const upazila = upazilas.find(item => item.id === selectedUpazila);
 
     if (!user) {
       Alert.alert('Authentication required', 'Please log in again.');
@@ -311,8 +340,14 @@ function EditProfileContent({
         dob: hasDateOfBirth
           ? Timestamp.fromDate(dateOfBirth)
           : null,
-        country: selectedCountry,
-        sub_division: selectedSubdivision,
+        country: 'Bangladesh',
+        division: division?.name ?? null,
+        division_id: selectedDivision,
+        district: district?.name ?? null,
+        district_id: selectedDistrict,
+        upazila: upazila?.name ?? null,
+        upazila_id: selectedUpazila,
+        sub_division: upazila?.name ?? null,
         latitude,
         longitude,
       });
@@ -326,18 +361,18 @@ function EditProfileContent({
     }
   };
 
-  if (loadingProfile || loadingCountries) {
+  if (loadingProfile) {
     return <Loader text="Loading profile..." />;
   }
 
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+        <TouchableOpacity onPress={() => navigation.navigate('MainTabs', {screen: 'Home'})}>
           <Text style={styles.appName}>BirdLens</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+        <TouchableOpacity onPress={() => navigation.navigate('MainTabs', {screen: 'Profile'})}>
           <Text style={styles.profileLink}>Profile</Text>
         </TouchableOpacity>
       </View>
@@ -410,39 +445,61 @@ function EditProfileContent({
           </Text>
         </TouchableOpacity>
 
-        <Text style={styles.label}>Country</Text>
+        <Text style={styles.label}>Division</Text>
         <View style={styles.pickerContainer}>
           <Picker
-            selectedValue={selectedCountry}
+            selectedValue={selectedDivision}
             onValueChange={value => {
-              setSelectedCountry(value);
-              setSelectedSubdivision(null);
+              setSelectedDivision(value);
+              setSelectedDistrict(null);
+              setSelectedUpazila(null);
             }}>
-            <Picker.Item label="Select country" value={null} />
+            <Picker.Item label="Select division" value={null} />
 
-            {data?.countries.map((country: any) => (
+            {divisions.map(division => (
               <Picker.Item
-                key={country.name}
-                label={country.name}
-                value={country.name}
+                key={division.id}
+                label={division.name}
+                value={division.id}
               />
             ))}
           </Picker>
         </View>
 
-        <Text style={styles.label}>Subdivision</Text>
+        <Text style={styles.label}>District</Text>
         <View style={styles.pickerContainer}>
           <Picker
-            enabled={Boolean(selectedCountryData)}
-            selectedValue={selectedSubdivision}
-            onValueChange={setSelectedSubdivision}>
-            <Picker.Item label="Select subdivision" value={null} />
+            enabled={Boolean(selectedDivisionData)}
+            selectedValue={selectedDistrict}
+            onValueChange={value => {
+              setSelectedDistrict(value);
+              setSelectedUpazila(null);
+            }}>
+            <Picker.Item label="Select district" value={null} />
 
-            {selectedCountryData?.subdivisions.map((subdivision: any) => (
+            {availableDistricts.map(district => (
               <Picker.Item
-                key={subdivision.name}
-                label={subdivision.name}
-                value={subdivision.name}
+                key={district.id}
+                label={district.name}
+                value={district.id}
+              />
+            ))}
+          </Picker>
+        </View>
+
+        <Text style={styles.label}>Upazila</Text>
+        <View style={styles.pickerContainer}>
+          <Picker
+            enabled={Boolean(selectedDistrict)}
+            selectedValue={selectedUpazila}
+            onValueChange={setSelectedUpazila}>
+            <Picker.Item label="Select upazila" value={null} />
+
+            {availableUpazilas.map(upazila => (
+              <Picker.Item
+                key={upazila.id}
+                label={upazila.name}
+                value={upazila.id}
               />
             ))}
           </Picker>
@@ -460,6 +517,7 @@ function EditProfileContent({
 
         <MapView
           style={styles.map}
+          provider="google"
           region={{
             latitude,
             longitude,
@@ -518,18 +576,17 @@ const styles = StyleSheet.create({
   screen: {
     backgroundColor: '#eee',
     flex: 1,
-    marginTop: 50,
+    paddingTop: 50,
   },
   header: {
     alignItems: 'center',
-    backgroundColor: '#ddd',
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 15,
   },
   appName: {
     color: 'black',
-    fontSize: 40,
+    fontSize: 30,
     fontWeight: 'bold',
   },
   profileLink: {

@@ -558,6 +558,7 @@ export default function Profile({
               {showMap ? (
                 <MapView
                   style={styles.map}
+                  provider="google"
                   region={mapRegion}>
                   <Marker
                     coordinate={mapCoordinates}
@@ -600,15 +601,13 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: '#ffffff',
-    marginTop: 50,
-    marginBottom: 50,
+    paddingTop: 50,
   },
 
   header: {
     minHeight: 82,
     paddingHorizontal: 15,
     paddingVertical: 10,
-    backgroundColor: '#dddddd',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -616,7 +615,7 @@ const styles = StyleSheet.create({
 
   appName: {
     color: '#000000',
-    fontSize: 40,
+    fontSize: 30,
     fontWeight: 'bold',
   },
 
@@ -686,7 +685,7 @@ const styles = StyleSheet.create({
 
   profileHeading: {
     width: '95%',
-    marginTop: 20,
+    marginTop: 5,
     alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
