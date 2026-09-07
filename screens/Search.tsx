@@ -1,16 +1,3 @@
-// import React from "react";
-// import { Text, View } from "react-native";
-// import { SearchScreenProps } from "../types/navigation";
-// export default function Search({
-//    navigation,
-//  }: SearchScreenProps): React.JSX.Element {
-//     return (
-//         <View>
-//             <Text>Search Screen</Text>
-//         </View>
-//     );
-// }
-
 import { toByteArray } from 'base64-js';
 import jpeg from 'jpeg-js';
 import React, { useState } from 'react';
@@ -81,8 +68,7 @@ export default function Search({
 }: SearchScreenProps): React.JSX.Element {
   const [modalVisible, setModalVisible] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
-  const [prediction, setPrediction] =
-    useState<ClassificationResult | null>(null);
+  const [prediction, setPrediction] = useState<ClassificationResult | null>(null);
   const [classifying, setClassifying] = useState(false);
 
   const processImage = async (image: PickedImage): Promise<void> => {

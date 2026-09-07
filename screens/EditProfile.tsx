@@ -20,7 +20,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
 
 import DateModal from '../components/DateModal';
 import Loader from '../components/Loader';
@@ -264,7 +263,7 @@ function EditProfileContent({
       }
 
       setUploadingImage(true);
-      await updateProfileImage(uri);
+      await updateProfileImage(uri.uri);
     } catch (error: unknown) {
       console.error('Profile image update failed:', error);
       Alert.alert('Upload failed', 'The image could not be uploaded.');
@@ -283,7 +282,7 @@ function EditProfileContent({
       }
 
       setUploadingImage(true);
-      await updateProfileImage(uri);
+      await updateProfileImage(uri.uri);
     } catch (error: unknown) {
       console.error('Profile camera update failed:', error);
       Alert.alert('Upload failed', 'The photo could not be uploaded.');
@@ -505,7 +504,7 @@ function EditProfileContent({
           </Picker>
         </View>
 
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={styles.locationButton}
           onPress={() => {
             void requestCurrentLocation();
@@ -528,7 +527,7 @@ function EditProfileContent({
             coordinate={{latitude, longitude}}
             title="Your location"
           />
-        </MapView>
+        </MapView> */}
 
         <TouchableOpacity
           disabled={savingProfile}

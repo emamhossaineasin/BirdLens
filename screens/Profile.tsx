@@ -254,19 +254,21 @@ export default function Profile({
     const country =
       userData.country?.trim() ?? '';
 
-    const subdivision =
+    const district =
       userData.sub_division?.trim() ||
+      '';
+    const division =
       userData.division?.trim() ||
       '';
-
-    if (country && subdivision) {
-      return `${country}, ${subdivision}`;
+    
+    if (country && division && district) {
+      return `${country}, ${division}, ${district}`;
     }
     if (country) {
       return country;
     }
-    if (subdivision) {
-      return subdivision;
+    if (district) {
+      return district;
     }
     return 'Not Provided Yet';
   }, [userData]);
@@ -529,7 +531,7 @@ export default function Profile({
             </View>
           </View>
 
-          {mapCoordinates && mapRegion ? (
+          {/* {mapCoordinates && mapRegion ? (
             <View style={styles.locationSection}>
               <TouchableOpacity
                 accessibilityRole="button"
@@ -580,7 +582,7 @@ export default function Profile({
                 No map location has been saved.
               </Text>
             </View>
-          )}
+          )} */}
 
           <TouchableOpacity
             accessibilityRole="button"

@@ -633,9 +633,8 @@ export default function Home({
               onSubmit={storeComment}
               onClose={closeComments}
             />
-)}
+          )}
       </View>
-      
     );
   };
   const paginatedPosts = useMemo<Post[]>(
